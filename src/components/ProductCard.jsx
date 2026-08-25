@@ -79,6 +79,10 @@ export default function ProductCard({ producto }) {
           <strong>{CUOTAS} cuotas sin interes</strong> de {precioARS(cuota)}
         </p>
 
+        <Link to={`/producto/${producto.id}`} className="btn btn-negro tarjeta-comprar">
+          Comprar
+        </Link>
+
         {producto.colores.length > 1 && (
           <div className="tarjeta-colores">
             {producto.colores.map((c) => (

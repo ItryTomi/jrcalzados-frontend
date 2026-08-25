@@ -162,10 +162,16 @@
   color: var(--negro);
 }
 
+.tarjeta-comprar {
+  margin-top: auto;
+  padding: 11px 14px;
+  font-size: .74rem;
+  letter-spacing: .12em;
+}
+
 .tarjeta-colores {
   display: flex;
   gap: 6px;
-  margin-top: auto;
   padding-top: 10px;
 }
 .tarjeta-colores button {
@@ -179,8 +185,13 @@
 .tarjeta-colores button.activo { outline: 2px solid var(--negro); }
 
 @media (max-width: 820px) {
+  /* En movil no hay hover: el acceso rapido se reemplaza por el boton
+     Comprar, que en desktop convive con el selector de talles. */
   .tarjeta-rapida { display: none; }
   .precio { font-size: 1.25rem; }
+  .tarjeta-cuerpo { padding: 12px 12px 14px; }
+  .tarjeta-comprar { padding: 10px 12px; font-size: .7rem; }
+  .tarjeta-nombre { font-size: .84rem; min-height: 2.3em; }
 }
 
 /* consulta de talles (productos sin talle cargado) */
