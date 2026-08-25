@@ -1,0 +1,220 @@
+/* ---- Login ---- */
+.panel-login { min-height: 62vh; display: grid; place-items: center; padding: 40px 20px; }
+.panel-login form {
+  width: min(100%, 360px);
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  text-align: center;
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radio);
+  padding: 34px 26px;
+  box-shadow: var(--sombra);
+}
+.panel-login svg { color: var(--lima-osc); }
+.panel-login h1 { font-size: 1.7rem; }
+.panel-login p { margin: 0 0 4px; color: var(--gris-txt); font-size: .88rem; }
+.panel-login input {
+  width: 100%;
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radio);
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: .95rem;
+  outline: none;
+}
+.panel-login input:focus { border-color: var(--negro); }
+
+/* ---- Panel ---- */
+.panel { padding: 26px 0 70px; }
+.panel-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--negro);
+  margin-bottom: 20px;
+}
+.panel-top h1 { font-size: clamp(1.8rem, 4vw, 2.5rem); }
+.panel-top p { margin: 6px 0 0; font-size: .85rem; color: var(--gris-txt); }
+.panel-top p strong { color: var(--lima-osc); }
+
+.panel-acciones { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.panel-acciones select {
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radio);
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: .84rem;
+  background: var(--blanco);
+}
+.panel-acciones .btn { padding: 10px 16px; font-size: .72rem; }
+
+.panel-error {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  background: #fdecea;
+  border: 1px solid #f5c2bd;
+  border-radius: var(--radio);
+  color: #8c1d13;
+  font-size: .82rem;
+}
+.panel-vacio {
+  display: grid;
+  place-items: center;
+  gap: 10px;
+  padding: 60px 20px;
+  color: var(--gris-txt);
+  border: 1px dashed var(--gris-borde);
+  border-radius: var(--radio);
+}
+
+.panel-lista { display: flex; flex-direction: column; gap: 10px; }
+
+.pedido { border: 1px solid var(--gris-borde); border-radius: var(--radio); overflow: hidden; }
+.pedido.abierto { border-color: var(--negro); }
+
+.pedido-cabecera {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 116px 108px 92px 150px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  background: var(--blanco);
+  border: 0;
+  padding: 14px 16px;
+  text-align: left;
+  font-family: inherit;
+}
+.pedido-cabecera:hover { background: var(--gris-bg); }
+.pedido-orden { font-weight: 800; font-size: .82rem; letter-spacing: .04em; }
+.pedido-fecha { font-size: .76rem; color: var(--gris-txt); }
+.pedido-cliente { font-size: .84rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pedido-total { font-family: var(--titulo); font-size: 1.15rem; }
+
+.chip {
+  font-size: .64rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 999px;
+  text-align: center;
+  white-space: nowrap;
+}
+.chip-ok { background: #e6f4d5; color: #4a6b12; }
+.chip-espera { background: #fdf0d5; color: #8a5a08; }
+.chip-mal { background: #fdecea; color: #8c1d13; }
+.chip-gris { background: var(--gris-bg); color: var(--gris-txt); }
+.chip-envio { background: var(--gris-bg); color: var(--negro); }
+.chip-envio.chip-despachado, .chip-envio.chip-entregado { background: var(--negro); color: var(--blanco); }
+.chip-envio.chip-preparado { background: var(--lima); color: var(--negro); }
+
+.pedido-detalle {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr;
+  gap: 24px;
+  padding: 20px 16px;
+  border-top: 1px solid var(--gris-borde);
+  background: var(--gris-bg);
+}
+.detalle-col h3 {
+  font-size: .74rem;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--gris-txt);
+  margin: 0 0 10px;
+}
+.detalle-col h3:not(:first-child) { margin-top: 18px; }
+.detalle-col p { margin: 0 0 4px; font-size: .86rem; line-height: 1.55; }
+.detalle-nota {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px !important;
+  font-size: .78rem !important;
+  color: var(--gris-txt);
+}
+
+.detalle-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.detalle-items li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+  align-items: center;
+  font-size: .85rem;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--gris-borde);
+}
+.detalle-items li:last-child { border-bottom: 0; padding-bottom: 0; }
+.detalle-items em { display: block; font-style: normal; font-size: .76rem; color: var(--gris-txt); }
+.detalle-cant { font-weight: 700; color: var(--gris-txt); }
+
+.detalle-estados { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.detalle-estados button {
+  border: 1px solid var(--gris-borde);
+  background: var(--blanco);
+  border-radius: var(--radio);
+  padding: 7px 11px;
+  font-size: .74rem;
+  font-weight: 600;
+  font-family: inherit;
+}
+.detalle-estados button:hover { border-color: var(--negro); }
+.detalle-estados button.activo {
+  background: var(--negro);
+  color: var(--blanco);
+  border-color: var(--negro);
+}
+
+.detalle-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 12px;
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--gris-txt);
+}
+.detalle-campo input,
+.detalle-campo textarea {
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radio);
+  padding: 9px 11px;
+  font-family: inherit;
+  font-size: .86rem;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--negro);
+  outline: none;
+  resize: vertical;
+}
+.detalle-campo input:focus, .detalle-campo textarea:focus { border-color: var(--negro); }
+
+@media (max-width: 1100px) {
+  .pedido-detalle { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 860px) {
+  .pedido-cabecera {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'orden total'
+      'fecha fecha'
+      'chips chips'
+      'cliente cliente';
+    row-gap: 6px;
+  }
+  .pedido-orden { grid-area: orden; }
+  .pedido-total { grid-area: total; }
+  .pedido-fecha { grid-area: fecha; }
+  .pedido-cliente { grid-area: cliente; }
+  .chip { grid-area: chips; justify-self: start; }
+  .chip-envio { justify-self: start; margin-left: 96px; margin-top: -22px; }
+  .pedido-detalle { grid-template-columns: 1fr; }
+}

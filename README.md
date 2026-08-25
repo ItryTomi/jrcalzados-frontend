@@ -158,13 +158,34 @@ La tabla `pedidos` se crea sola en el primer uso, no hay que correr migraciones.
 **La base es opcional**: si no esta configurada el cobro igual funciona, solo que
 no queda registro.
 
-### Ver los pedidos
+### Panel de pedidos
+
+En **`/panel`**. Pide la clave (`ADMIN_TOKEN`) y queda guardada en la pestana
+hasta que se cierre.
+
+Muestra por pedido: numero, fecha, estado del pago, total, comprador, direccion de
+entrega y los productos con talle y color. Desde ahi el local puede:
+
+- marcar el pedido como preparado / despachado / entregado,
+- cargar el numero de seguimiento del correo,
+- dejar una nota interna,
+- escribirle al comprador por WhatsApp con un toque.
+
+Arriba muestra cuantos pedidos hay pagados, cuanta plata suman y cuantos faltan
+preparar. Se filtra por estado de pago.
+
+`robots.txt` bloquea `/panel`, `/checkout`, `/pago/` y `/api/` para que no aparezcan
+en buscadores.
+
+**Sobre la seguridad**: es una clave compartida, no un login con usuarios. Alcanza
+para que solo el local entre, pero si se filtra hay que cambiar `ADMIN_TOKEN` en
+Vercel. No la compartas por WhatsApp ni la dejes escrita en el mostrador.
+
+Tambien se puede consultar directo:
 
 ```
 curl -H "Authorization: Bearer $ADMIN_TOKEN" https://<tu-dominio>/api/pedidos
 ```
-
-Es la vista minima hasta que exista un panel con login.
 
 ### Variables de entorno
 
@@ -207,7 +228,14 @@ Paginas en `/legales/terminos`, `/legales/cambios`, `/legales/privacidad` y
 
 - **Control de stock.** El catalogo no lleva stock, asi que se puede vender un talle
   que ya no esta. Hay que revisar cada pedido a mano.
-- **Panel de administracion.** Hoy los pedidos se ven por API o por mail.
+- **Carga de productos.** Hoy el catalogo esta en un archivo de codigo: cada alta
+  hay que hacerla en `src/data/productos.js` y publicar.
+
+### Nota de desarrollo
+
+Cambiar el `.env` **no alcanza** para que `npm run dev` tome el valor nuevo: hay que
+frenar y volver a levantar el server, porque las variables quedan en el proceso de
+Node. En Vercel esto no pasa, cada deploy las lee de cero.
 - **Plan de Vercel.** El plan Hobby es para proyectos personales sin fines
   comerciales. Cuando la tienda empiece a cobrar hay que pasar a Pro o mudar las
   funciones a un proveedor cuyo plan gratuito permita uso comercial.

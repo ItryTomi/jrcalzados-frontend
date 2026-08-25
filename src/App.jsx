@@ -11,6 +11,7 @@ import Contacto from './pages/Contacto'
 import Checkout from './pages/Checkout'
 import Legales from './pages/Legales'
 import Arrepentimiento from './pages/Arrepentimiento'
+import Panel from './pages/Panel'
 import PagoResultado from './pages/PagoResultado'
 
 function IrArriba() {
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="/pago/:estado" element={<PagoResultado />} />
           <Route path="/legales/:doc" element={<Legales />} />
           <Route path="/arrepentimiento" element={<Arrepentimiento />} />
+          <Route path="/panel" element={<Panel />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </main>
