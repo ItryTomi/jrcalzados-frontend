@@ -14,8 +14,9 @@ export default function CartDrawer() {
 
   if (!abierto) return null
 
-  const falta = Math.max(0, TIENDA.envioGratisDesde - subtotal)
-  const avance = Math.min(100, (subtotal / TIENDA.envioGratisDesde) * 100)
+  const meta = TIENDA.envioGratisDesde || 1
+  const falta = Math.max(0, meta - subtotal)
+  const avance = Math.min(100, (subtotal / meta) * 100)
 
   const mensaje = [
     `Hola ${TIENDA.nombre}! Quiero hacer este pedido:`,
@@ -54,25 +55,31 @@ export default function CartDrawer() {
           </div>
         ) : (
           <>
-            <div className="carrito-envio">
-              {falta > 0 ? (
-                <p>
-                  Te faltan <strong>{precioARS(falta)}</strong> para el envio gratis
-                </p>
-              ) : (
-                <p className="listo">Tenes envio gratis!</p>
-              )}
-              <div className="barra">
-                <span style={{ width: `${avance}%` }} />
+            {TIENDA.envioGratisActivo ? (
+              <div className="carrito-envio">
+                {falta > 0 ? (
+                  <p>
+                    Te faltan <strong>{precioARS(falta)}</strong> para el envio gratis
+                  </p>
+                ) : (
+                  <p className="listo">Tenes envio gratis!</p>
+                )}
+                <div className="barra">
+                  <span style={{ width: `${avance}%` }} />
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="carrito-envio">
+                <p>Coordinamos envio o retiro en el local al confirmar el pedido.</p>
+              </div>
+            )}
 
             <ul className="carrito-lista">
               {lineas.map((l) => (
                 <li key={l.key}>
                   <div className="linea-figura">
                     <FotoProducto
-                      producto={{ imagen: l.imagen, nombre: l.nombre, colores: [] }}
+                      imagen={l.imagen}
                       colorHex={l.colorHex}
                       alt={l.nombre}
                       className="linea-img"
@@ -96,7 +103,6 @@ export default function CartDrawer() {
                         <button
                           onClick={() => cambiarCantidad(l.key, l.cantidad + 1)}
                           aria-label="Agregar uno"
-                          disabled={l.cantidad >= l.stock}
                         >
                           <Plus size={14} />
                         </button>

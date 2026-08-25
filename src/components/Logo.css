@@ -1,10 +1,13 @@
 .marca {
-  height: 62px;
-  width: auto;
-  object-fit: contain;
+  height: 64px;
+  width: 64px;
+  /* el logo es circular y el JPG trae las esquinas en negro: se recortan */
+  border-radius: 50%;
+  object-fit: cover;
   display: block;
 }
-.marca-chica { height: 46px; }
+.marca-chica { height: 48px; width: 48px; }
+.marca-texto { width: auto; height: auto; border-radius: 0; }
 
 .marca-texto {
   display: flex;
@@ -36,5 +39,5 @@
 .marca-inv.marca-texto small { color: rgba(255,255,255,.6); }
 
 @media (max-width: 820px) {
-  .marca { height: 46px; }
+  .marca { height: 50px; width: 50px; }
 }

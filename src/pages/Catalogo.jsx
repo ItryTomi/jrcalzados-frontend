@@ -4,9 +4,10 @@ import { ChevronRight, SlidersHorizontal, X } from 'lucide-react'
 import {
   PRODUCTOS,
   MARCAS,
-  DEPORTES,
-  TALLES_ADULTO,
-  TALLES_NINO,
+  TIPOS,
+  USOS,
+  TODOS_TALLES,
+  COLORES,
   descuento
 } from '../data/productos'
 import ProductCard from '../components/ProductCard'
@@ -14,9 +15,10 @@ import { useBloquearScroll } from '../hooks/useBloquearScroll'
 import './Catalogo.css'
 
 const TITULOS = {
-  hombre: 'Zapatillas de hombre',
-  mujer: 'Zapatillas de mujer',
-  ninos: 'Zapatillas de ninos',
+  hombre: 'Calzado de hombre',
+  mujer: 'Calzado de mujer',
+  ninos: 'Calzado de ninos',
+  sandalias: 'Sandalias',
   ofertas: 'Ofertas'
 }
 
@@ -24,14 +26,8 @@ const ORDENES = [
   { id: 'relevancia', nombre: 'Relevancia' },
   { id: 'menor', nombre: 'Precio: menor a mayor' },
   { id: 'mayor', nombre: 'Precio: mayor a menor' },
-  { id: 'descuento', nombre: 'Mayor descuento' },
   { id: 'nombre', nombre: 'Nombre A-Z' }
 ]
-
-const TODOS_TALLES = [...new Set([...TALLES_NINO, ...TALLES_ADULTO])].sort((a, b) => a - b)
-const COLORES = [
-  ...new Map(PRODUCTOS.flatMap((p) => p.colores).map((c) => [c.nombre, c])).values()
-].sort((a, b) => a.nombre.localeCompare(b.nombre))
 
 const alternar = (lista, valor) =>
   lista.includes(valor) ? lista.filter((x) => x !== valor) : [...lista, valor]
@@ -42,7 +38,8 @@ export default function Catalogo() {
   const q = (params.get('q') || '').toLowerCase().trim()
 
   const [marcas, setMarcas] = useState([])
-  const [deportes, setDeportes] = useState([])
+  const [tipos, setTipos] = useState([])
+  const [usos, setUsos] = useState([])
   const [talles, setTalles] = useState([])
   const [colores, setColores] = useState([])
   const [orden, setOrden] = useState('relevancia')
@@ -50,53 +47,66 @@ export default function Catalogo() {
   const [filtrosAbiertos, setFiltrosAbiertos] = useState(false)
   useBloquearScroll(filtrosAbiertos)
 
-  // Sincroniza los filtros que llegan por URL (?marca= / ?deporte=)
+  // Filtros que llegan por URL (?marca= / ?tipo= / ?uso=)
   useEffect(() => {
     const m = params.get('marca')
-    const d = params.get('deporte')
+    const t = params.get('tipo')
+    const u = params.get('uso')
     setMarcas(m ? [m] : [])
-    setDeportes(d ? [d] : [])
+    setTipos(t ? [t] : [])
+    setUsos(u ? [u] : [])
     setVisibles(12)
   }, [params, categoria])
 
   const resultado = useMemo(() => {
     let lista = PRODUCTOS
 
-    if (categoria === 'ofertas') lista = lista.filter((p) => descuento(p) > 0)
-    else if (categoria) lista = lista.filter((p) => p.genero === categoria)
+    if (categoria === 'ofertas') lista = lista.filter((x) => descuento(x) > 0)
+    else if (categoria === 'sandalias') lista = lista.filter((x) => x.tipo === 'Sandalias')
+    else if (categoria === 'hombre')
+      lista = lista.filter((x) => x.genero === 'hombre' || x.genero === 'unisex')
+    else if (categoria === 'mujer')
+      lista = lista.filter(
+        (x) => (x.genero === 'mujer' || x.genero === 'unisex') && x.tipo !== 'Sandalias'
+      )
+    else if (categoria) lista = lista.filter((x) => x.genero === categoria)
 
     if (q) {
-      lista = lista.filter((p) =>
-        `${p.marca} ${p.nombre} ${p.deporte}`.toLowerCase().includes(q)
+      lista = lista.filter((x) =>
+        `${x.marca} ${x.nombre} ${x.tipo} ${x.uso} ${x.codigo || ''}`.toLowerCase().includes(q)
       )
     }
-    if (marcas.length) lista = lista.filter((p) => marcas.includes(p.marca))
-    if (deportes.length) lista = lista.filter((p) => deportes.includes(p.deporte))
-    if (talles.length) lista = lista.filter((p) => p.talles.some((t) => talles.includes(t)))
+    if (marcas.length) lista = lista.filter((x) => marcas.includes(x.marca))
+    if (tipos.length) lista = lista.filter((x) => tipos.includes(x.tipo))
+    if (usos.length) lista = lista.filter((x) => usos.includes(x.uso))
+    if (talles.length) lista = lista.filter((x) => x.talles.some((t) => talles.includes(t)))
     if (colores.length)
-      lista = lista.filter((p) => p.colores.some((c) => colores.includes(c.nombre)))
+      lista = lista.filter((x) => x.colores.some((c) => colores.includes(c.nombre)))
 
     const copia = [...lista]
     if (orden === 'menor') copia.sort((a, b) => a.precio - b.precio)
     if (orden === 'mayor') copia.sort((a, b) => b.precio - a.precio)
-    if (orden === 'descuento') copia.sort((a, b) => descuento(b) - descuento(a))
     if (orden === 'nombre') copia.sort((a, b) => a.nombre.localeCompare(b.nombre))
     return copia
-  }, [categoria, q, marcas, deportes, talles, colores, orden])
+  }, [categoria, q, marcas, tipos, usos, talles, colores, orden])
 
   const limpiar = () => {
     setMarcas([])
-    setDeportes([])
+    setTipos([])
+    setUsos([])
     setTalles([])
     setColores([])
     setParams({})
   }
 
-  const hayFiltros = marcas.length || deportes.length || talles.length || colores.length || q
+  const hayFiltros =
+    marcas.length || tipos.length || usos.length || talles.length || colores.length || q
 
   const titulo = q
     ? `Resultados para "${params.get('q')}"`
     : TITULOS[categoria] || 'Todo el catalogo'
+
+  const contar = (fn) => PRODUCTOS.filter(fn).length
 
   const panelFiltros = (
     <>
@@ -117,6 +127,21 @@ export default function Catalogo() {
       </div>
 
       <div className="grupo-filtro">
+        <h4>Tipo</h4>
+        {TIPOS.map((t) => (
+          <label key={t}>
+            <input
+              type="checkbox"
+              checked={tipos.includes(t)}
+              onChange={() => setTipos((v) => alternar(v, t))}
+            />
+            <span>{t}</span>
+            <em>{contar((x) => x.tipo === t)}</em>
+          </label>
+        ))}
+      </div>
+
+      <div className="grupo-filtro">
         <h4>Marca</h4>
         {MARCAS.map((m) => (
           <label key={m}>
@@ -126,22 +151,22 @@ export default function Catalogo() {
               onChange={() => setMarcas((v) => alternar(v, m))}
             />
             <span>{m}</span>
-            <em>{PRODUCTOS.filter((p) => p.marca === m).length}</em>
+            <em>{contar((x) => x.marca === m)}</em>
           </label>
         ))}
       </div>
 
       <div className="grupo-filtro">
-        <h4>Deporte</h4>
-        {DEPORTES.map((d) => (
-          <label key={d}>
+        <h4>Uso</h4>
+        {USOS.map((u) => (
+          <label key={u}>
             <input
               type="checkbox"
-              checked={deportes.includes(d)}
-              onChange={() => setDeportes((v) => alternar(v, d))}
+              checked={usos.includes(u)}
+              onChange={() => setUsos((v) => alternar(v, u))}
             />
-            <span>{d}</span>
-            <em>{PRODUCTOS.filter((p) => p.deporte === d).length}</em>
+            <span>{u}</span>
+            <em>{contar((x) => x.uso === u)}</em>
           </label>
         ))}
       </div>
@@ -183,7 +208,9 @@ export default function Catalogo() {
         <div className="catalogo-top">
           <div>
             <h1>{titulo}</h1>
-            <p>{resultado.length} productos</p>
+            <p>
+              {resultado.length} {resultado.length === 1 ? 'producto' : 'productos'}
+            </p>
           </div>
           <div className="catalogo-controles">
             <button className="boton-filtros" onClick={() => setFiltrosAbiertos(true)}>
@@ -217,8 +244,8 @@ export default function Catalogo() {
             ) : (
               <>
                 <div className="grilla-productos g3">
-                  {resultado.slice(0, visibles).map((p) => (
-                    <ProductCard key={p.id} producto={p} />
+                  {resultado.slice(0, visibles).map((x) => (
+                    <ProductCard key={x.id} producto={x} />
                   ))}
                 </div>
                 {visibles < resultado.length && (
@@ -245,10 +272,7 @@ export default function Catalogo() {
               </button>
             </header>
             <div className="filtros-panel-cuerpo">{panelFiltros}</div>
-            <button
-              className="btn btn-lima btn-bloque"
-              onClick={() => setFiltrosAbiertos(false)}
-            >
+            <button className="btn btn-lima btn-bloque" onClick={() => setFiltrosAbiertos(false)}>
               Ver {resultado.length} productos
             </button>
           </div>

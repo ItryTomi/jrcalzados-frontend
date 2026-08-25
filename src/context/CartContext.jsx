@@ -13,9 +13,10 @@ function reducer(estado, accion) {
       const existente = estado.find((l) => l.key === key)
       if (existente) {
         return estado.map((l) =>
-          l.key === key ? { ...l, cantidad: Math.min(l.cantidad + cantidad, producto.stock) } : l
+          l.key === key ? { ...l, cantidad: l.cantidad + cantidad } : l
         )
       }
+      const variante = producto.colores.find((c) => c.nombre === color) || producto.colores[0]
       return [
         ...estado,
         {
@@ -24,9 +25,8 @@ function reducer(estado, accion) {
           nombre: producto.nombre,
           marca: producto.marca,
           precio: producto.precio,
-          imagen: producto.imagen,
-          colorHex: producto.colores.find((c) => c.nombre === color)?.hex || '#141414',
-          stock: producto.stock,
+          imagen: variante?.imagen || null,
+          colorHex: variante?.hex || '#141414',
           talle,
           color,
           cantidad
@@ -36,7 +36,7 @@ function reducer(estado, accion) {
     case 'cantidad':
       return estado.map((l) =>
         l.key === accion.key
-          ? { ...l, cantidad: Math.max(1, Math.min(accion.cantidad, l.stock)) }
+          ? { ...l, cantidad: Math.max(1, accion.cantidad) }
           : l
       )
     case 'quitar':

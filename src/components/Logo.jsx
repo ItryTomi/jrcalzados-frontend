@@ -11,7 +11,7 @@ export default function Logo({ compacto = false, invertido = false }) {
     return (
       <img
         className={clase}
-        src={paso === 0 ? '/logo.png' : '/logo.svg'}
+        src={paso === 0 ? '/logo.jpg' : '/logo.svg'}
         alt="JR Calzados"
         onError={() => setPaso((n) => n + 1)}
       />

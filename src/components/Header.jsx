@@ -2,14 +2,16 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Menu, Search, ShoppingBag, X, MapPin, Phone } from 'lucide-react'
 import { useCarrito } from '../context/CartContext'
-import { MARCAS, DEPORTES } from '../data/productos'
+import { MARCAS, TIPOS } from '../data/productos'
 import { TIENDA } from '../data/tienda'
 import Logo from './Logo'
 import './Header.css'
 
 const AVISOS = [
   'RETIRA EN NUESTRO LOCAL DE SAN FRANCISCO SIN CARGO',
-  `ENVIO GRATIS EN COMPRAS DESDE $${TIENDA.envioGratisDesde.toLocaleString('es-AR')}`,
+  TIENDA.envioGratisActivo
+    ? `ENVIO GRATIS EN COMPRAS DESDE $${TIENDA.envioGratisDesde.toLocaleString('es-AR')}`
+    : 'ENVIOS A TODO EL PAIS',
   `HASTA ${TIENDA.cuotasSinInteres} CUOTAS SIN INTERES CON TARJETA`
 ]
 
@@ -57,7 +59,7 @@ export default function Header() {
               type="search"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="Buscar zapatillas, marcas, deportes..."
+              placeholder="Buscar zapatillas, sandalias, marcas..."
               aria-label="Buscar productos"
             />
             <button type="submit" aria-label="Buscar">
@@ -100,18 +102,18 @@ export default function Header() {
           </div>
 
           <div className="nav-desplegable">
-            <button type="button">Deportes</button>
+            <button type="button">Tipo</button>
             <div className="panel">
-              {DEPORTES.map((d) => (
-                <Link key={d} to={`/catalogo?deporte=${encodeURIComponent(d)}`}>
-                  {d}
+              {TIPOS.map((t) => (
+                <Link key={t} to={`/catalogo?tipo=${encodeURIComponent(t)}`}>
+                  {t}
                 </Link>
               ))}
             </div>
           </div>
 
-          <NavLink to="/catalogo/ofertas" className="nav-ofertas">
-            Ofertas
+          <NavLink to="/catalogo/sandalias" className="nav-ofertas">
+            Sandalias
           </NavLink>
           <NavLink to="/contacto">Contacto</NavLink>
 
@@ -146,8 +148,8 @@ export default function Header() {
               <Link to="/catalogo/hombre">Hombre</Link>
               <Link to="/catalogo/mujer">Mujer</Link>
               <Link to="/catalogo/ninos">Ninos</Link>
-              <Link to="/catalogo/ofertas" className="destacado">
-                Ofertas
+              <Link to="/catalogo/sandalias" className="destacado">
+                Sandalias
               </Link>
               <Link to="/catalogo">Ver todo el catalogo</Link>
               <Link to="/contacto">Contacto</Link>

@@ -1,44 +1,46 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, CreditCard, MapPin, RefreshCw, Truck } from 'lucide-react'
-import { PRODUCTOS, MARCAS, DEPORTES, descuento } from '../data/productos'
+import { ArrowRight, CreditCard, MapPin, Store, Truck } from 'lucide-react'
+import { PRODUCTOS, MARCAS, precioARS } from '../data/productos'
 import { TIENDA, linkWhatsApp } from '../data/tienda'
 import ProductCard from '../components/ProductCard'
-import FotoProducto from '../components/FotoProducto'
 import './Home.css'
 
 const SLIDES = [
   {
-    rotulo: 'Temporada 2026',
+    rotulo: 'Running 2026',
     titulo: 'Corre mas\nlejos',
-    texto: 'Running de las mejores marcas. Hasta 6 cuotas sin interes.',
+    texto: 'Olympikus, Jaguar y Diportto. Hasta 3 cuotas sin interes.',
     cta: 'Ver running',
-    link: '/catalogo?deporte=Running',
-    color: '#a3cc1e'
+    link: '/catalogo?uso=Running',
+    imagen: '/productos/olympikus-pride4-blanco-coral.jpg',
+    color: '#f2775f'
   },
   {
-    rotulo: 'Hasta 40% OFF',
-    titulo: 'Liquidacion\nurbana',
-    texto: 'Zapatillas urbanas seleccionadas con descuentos reales.',
-    cta: 'Ver ofertas',
-    link: '/catalogo/ofertas',
-    color: '#2b4f9e'
+    rotulo: 'Urbanas',
+    titulo: 'Clasicas\nde siempre',
+    texto: 'Retro runners y lonas para todos los dias, de 36 al 45.',
+    cta: 'Ver urbanas',
+    link: '/catalogo?uso=Urbano',
+    imagen: '/productos/jaguar-9412-azul.jpg',
+    color: '#22314f'
   },
   {
-    rotulo: 'Envio a todo el pais',
-    titulo: 'Retira en\nel local',
-    texto: `Estamos en ${TIENDA.ciudad}, ${TIENDA.provincia}. Comprás online y pasás a buscarlo.`,
-    cta: 'Como llegar',
-    link: '/contacto',
-    color: '#141414'
+    rotulo: 'Temporada',
+    titulo: 'Sandalias\nLady Comfort',
+    texto: 'Confort real para todo el dia. Consultanos talles disponibles.',
+    cta: 'Ver sandalias',
+    link: '/catalogo/sandalias',
+    imagen: '/productos/ladycomfort-velcro-taupe.jpg',
+    color: '#8d7c6a'
   }
 ]
 
-const BENEFICIOS = [
-  { icono: Truck, titulo: 'Envio a todo el pais', texto: 'Gratis en compras desde $149.999' },
-  { icono: CreditCard, titulo: '6 cuotas sin interes', texto: 'Con todas las tarjetas' },
-  { icono: RefreshCw, titulo: 'Cambios sin drama', texto: '30 dias para cambiar el talle' },
-  { icono: MapPin, titulo: 'Local a la calle', texto: `${TIENDA.ciudad}, ${TIENDA.provincia}` }
+const CATEGORIAS_HOME = [
+  { nombre: 'Hombre', link: '/catalogo/hombre', imagen: '/productos/jaguar-9435-negra.jpg' },
+  { nombre: 'Mujer', link: '/catalogo/mujer', imagen: '/productos/jaguar-9394-rosa.jpg' },
+  { nombre: 'Ninos', link: '/catalogo/ninos', imagen: '/productos/jaguar-4036-rosa.jpg' },
+  { nombre: 'Sandalias', link: '/catalogo/sandalias', imagen: '/productos/karina-1494-beige.jpg' }
 ]
 
 export default function Home() {
@@ -50,12 +52,20 @@ export default function Home() {
   }, [])
 
   const destacados = PRODUCTOS.filter((x) => x.destacado).slice(0, 8)
-  const ofertas = [...PRODUCTOS]
-    .filter((x) => descuento(x) > 0)
-    .sort((a, b) => descuento(b) - descuento(a))
-    .slice(0, 4)
   const nuevos = PRODUCTOS.filter((x) => x.nuevo).slice(0, 4)
+  const masBarato = Math.min(...PRODUCTOS.map((x) => x.precio))
   const s = SLIDES[slide]
+
+  const BENEFICIOS = [
+    { icono: Truck, titulo: 'Envios a todo el pais', texto: 'Coordinamos al confirmar el pedido' },
+    {
+      icono: CreditCard,
+      titulo: `${TIENDA.cuotasSinInteres} cuotas sin interes`,
+      texto: 'Con todas las tarjetas'
+    },
+    { icono: Store, titulo: 'Retiro en el local', texto: 'Sin cargo, comprando online' },
+    { icono: MapPin, titulo: 'Local a la calle', texto: `${TIENDA.ciudad}, ${TIENDA.provincia}` }
+  ]
 
   return (
     <>
@@ -71,12 +81,7 @@ export default function Home() {
             </Link>
           </div>
           <div className="hero-figura" key={`f${slide}`}>
-            <FotoProducto
-              producto={{ imagen: null, nombre: 'Zapatilla destacada', colores: [] }}
-              colorHex={s.color}
-              alt="Zapatilla destacada"
-              className="hero-img"
-            />
+            <img className="hero-img" src={s.imagen} alt={s.rotulo} />
           </div>
         </div>
         <div className="hero-puntos">
@@ -112,18 +117,19 @@ export default function Home() {
           <div className="seccion-cabecera">
             <div>
               <span className="rotulo">Elegi por categoria</span>
-              <h2>Compra por deporte</h2>
+              <h2>Que estas buscando</h2>
             </div>
             <Link to="/catalogo" className="link-todos">
               Ver todo
             </Link>
           </div>
-          <div className="deportes">
-            {DEPORTES.map((d, i) => (
-              <Link key={d} to={`/catalogo?deporte=${encodeURIComponent(d)}`} className="deporte">
-                <span className="deporte-num">0{i + 1}</span>
-                <span className="deporte-nombre">{d}</span>
-                <ArrowRight size={18} />
+          <div className="categorias">
+            {CATEGORIAS_HOME.map((c) => (
+              <Link key={c.nombre} to={c.link} className="categoria">
+                <img src={c.imagen} alt={c.nombre} loading="lazy" />
+                <span className="categoria-nombre">
+                  {c.nombre} <ArrowRight size={17} />
+                </span>
               </Link>
             ))}
           </div>
@@ -143,57 +149,29 @@ export default function Home() {
             </Link>
           </div>
           <div className="grilla-productos">
-            {destacados.map((p) => (
-              <ProductCard key={p.id} producto={p} />
+            {destacados.map((x) => (
+              <ProductCard key={x.id} producto={x} />
             ))}
           </div>
         </div>
       </section>
 
-      {/* ---------- BANNER OFERTAS ---------- */}
+      {/* ---------- BANNER ---------- */}
       <section className="banner-ofertas">
         <div className="contenedor banner-int">
           <div>
-            <span className="rotulo rotulo-claro">Solo por tiempo limitado</span>
+            <span className="rotulo rotulo-claro">Toda la familia</span>
             <h2>
-              Hasta <em>40% OFF</em> en seleccionados
+              Desde <em>{precioARS(masBarato)}</em>
             </h2>
-            <p>Modelos de temporada anterior con descuentos que no vuelven.</p>
+            <p>
+              Zapatillas, botitas, lonas y sandalias. Marcas nacionales con precio de local, no de
+              shopping.
+            </p>
           </div>
-          <Link to="/catalogo/ofertas" className="btn btn-lima">
-            Ver ofertas <ArrowRight size={17} />
+          <Link to="/catalogo" className="btn btn-lima">
+            Ver catalogo <ArrowRight size={17} />
           </Link>
-        </div>
-      </section>
-
-      {/* ---------- OFERTAS ---------- */}
-      <section className="seccion">
-        <div className="contenedor">
-          <div className="seccion-cabecera">
-            <div>
-              <span className="rotulo">Bajaron de precio</span>
-              <h2>Mejores descuentos</h2>
-            </div>
-            <Link to="/catalogo/ofertas" className="link-todos">
-              Ver todas
-            </Link>
-          </div>
-          <div className="grilla-productos">
-            {ofertas.map((p) => (
-              <ProductCard key={p.id} producto={p} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ---------- MARCAS ---------- */}
-      <section className="tira-marcas">
-        <div className="contenedor tira-marcas-int">
-          {MARCAS.map((m) => (
-            <Link key={m} to={`/catalogo?marca=${encodeURIComponent(m)}`}>
-              {m}
-            </Link>
-          ))}
         </div>
       </section>
 
@@ -210,10 +188,21 @@ export default function Home() {
             </Link>
           </div>
           <div className="grilla-productos">
-            {nuevos.map((p) => (
-              <ProductCard key={p.id} producto={p} />
+            {nuevos.map((x) => (
+              <ProductCard key={x.id} producto={x} />
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ---------- MARCAS ---------- */}
+      <section className="tira-marcas">
+        <div className="contenedor tira-marcas-int">
+          {MARCAS.map((m) => (
+            <Link key={m} to={`/catalogo?marca=${encodeURIComponent(m)}`}>
+              {m}
+            </Link>
+          ))}
         </div>
       </section>
 
@@ -221,7 +210,7 @@ export default function Home() {
       <section className="bloque-local">
         <div className="contenedor bloque-local-int">
           <div>
-            <span className="rotulo">Vení a probártelas</span>
+            <span className="rotulo">Veni a probartelas</span>
             <h2>
               Estamos en {TIENDA.ciudad}, {TIENDA.provincia}
             </h2>
@@ -245,7 +234,7 @@ export default function Home() {
             <iframe
               title="Ubicacion del local"
               src={`https://www.google.com/maps?q=${encodeURIComponent(
-                TIENDA.direccion
+                `${TIENDA.direccion}`
               )}&output=embed`}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"

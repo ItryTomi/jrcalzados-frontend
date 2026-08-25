@@ -158,3 +158,17 @@
 @media (max-width: 900px) {
   .producto-cuerpo { grid-template-columns: 1fr; gap: 28px; }
 }
+
+.talles-consultar {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 10px 0 0;
+  padding: 13px 15px;
+  background: var(--gris-bg);
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radio);
+  font-size: .86rem;
+  line-height: 1.5;
+}
+.talles-consultar svg { color: var(--lima-osc); flex-shrink: 0; }

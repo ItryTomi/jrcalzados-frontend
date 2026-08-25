@@ -28,17 +28,8 @@
 .pie-col a:hover { color: var(--lima); }
 
 .pie-marca p { margin: 0; font-size: .86rem; line-height: 1.7; max-width: 42ch; }
-.pie-logo {
-  background: var(--blanco);
-  border-radius: 50%;
-  width: 96px;
-  height: 96px;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  padding: 4px;
-}
-.pie-logo .marca { height: 88px; }
+.pie-logo { display: flex; }
+.pie-logo .marca { height: 92px; width: 92px; }
 
 .pie-redes { display: flex; gap: 10px; margin-top: 4px; }
 .pie-redes a {

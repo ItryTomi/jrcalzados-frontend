@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ChevronRight, CreditCard, MapPin, RefreshCw, Ruler, Truck } from 'lucide-react'
-import { buscarProducto, PRODUCTOS, descuento, precioARS, CUOTAS } from '../data/productos'
+import {
+  buscarProducto,
+  PRODUCTOS,
+  descuento,
+  precioARS,
+  rangoTalles,
+  CUOTAS
+} from '../data/productos'
 import { TIENDA, linkWhatsApp } from '../data/tienda'
 import { useCarrito } from '../context/CartContext'
 import FotoProducto from '../components/FotoProducto'
@@ -23,7 +30,7 @@ export default function Producto() {
     setAviso(false)
   }, [id, producto])
 
-  if (!producto) {
+  if (!producto || !color) {
     return (
       <div className="contenedor producto-noexiste">
         <h1>No encontramos ese producto</h1>
@@ -37,7 +44,7 @@ export default function Producto() {
   const off = descuento(producto)
   const cuota = Math.round(producto.precio / CUOTAS)
   const relacionados = PRODUCTOS.filter(
-    (p) => p.id !== producto.id && (p.deporte === producto.deporte || p.marca === producto.marca)
+    (x) => x.id !== producto.id && (x.tipo === producto.tipo || x.marca === producto.marca)
   ).slice(0, 4)
 
   const alAgregar = () => {
@@ -49,9 +56,9 @@ export default function Producto() {
   }
 
   const consulta = linkWhatsApp(
-    `Hola ${TIENDA.nombre}! Queria consultar por: ${producto.marca} ${producto.nombre}${
-      talle ? ` (talle ${talle})` : ''
-    }`
+    `Hola ${TIENDA.nombre}! Queria consultar por: ${producto.marca} ${producto.nombre} (${
+      color.nombre
+    })${talle ? ` - talle ${talle}` : ''}`
   )
 
   return (
@@ -60,7 +67,9 @@ export default function Producto() {
         <nav className="miga" aria-label="Migas de pan">
           <Link to="/">Inicio</Link>
           <ChevronRight size={13} />
-          <Link to={`/catalogo/${producto.genero}`}>{producto.genero}</Link>
+          <Link to={`/catalogo/${producto.tipo === 'Sandalias' ? 'sandalias' : producto.genero}`}>
+            {producto.tipo === 'Sandalias' ? 'Sandalias' : producto.genero}
+          </Link>
           <ChevronRight size={13} />
           <span>{producto.nombre}</span>
         </nav>
@@ -70,36 +79,39 @@ export default function Producto() {
             <div className="galeria-principal">
               {off > 0 && <span className="et et-off">{off}% OFF</span>}
               <FotoProducto
-                producto={producto}
+                imagen={color.imagen}
                 colorHex={color.hex}
-                alt={producto.nombre}
+                alt={`${producto.nombre} - ${color.nombre}`}
                 className="galeria-img"
               />
             </div>
-            <div className="galeria-mini">
-              {producto.colores.map((c) => (
-                <button
-                  key={c.nombre}
-                  className={c.nombre === color.nombre ? 'activo' : ''}
-                  onClick={() => setColor(c)}
-                  aria-label={`Ver color ${c.nombre}`}
-                >
-                  <FotoProducto
-                    producto={producto}
-                    colorHex={c.hex}
-                    alt={c.nombre}
-                    className="mini-img"
-                  />
-                </button>
-              ))}
-            </div>
+            {producto.colores.length > 1 && (
+              <div className="galeria-mini">
+                {producto.colores.map((c) => (
+                  <button
+                    key={c.nombre}
+                    className={c.nombre === color.nombre ? 'activo' : ''}
+                    onClick={() => setColor(c)}
+                    aria-label={`Ver color ${c.nombre}`}
+                  >
+                    <FotoProducto
+                      imagen={c.imagen}
+                      colorHex={c.hex}
+                      alt={c.nombre}
+                      className="mini-img"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="producto-datos">
             <p className="producto-marca">{producto.marca}</p>
             <h1>{producto.nombre}</h1>
             <p className="producto-sku">
-              Cod. {producto.id.toUpperCase()} &middot; {producto.deporte}
+              {producto.codigo ? `Cod. ${producto.codigo} · ` : ''}
+              {producto.tipo} · {producto.uso}
             </p>
 
             <div className="producto-precios">
@@ -133,44 +145,50 @@ export default function Producto() {
               </div>
             </div>
 
-            <div className="producto-talles">
-              <div className="talles-top">
-                <span className="etiqueta-campo">
-                  Talle {talle ? <strong>{talle}</strong> : null}
-                </span>
-                <span className="guia-talles">
-                  <Ruler size={14} /> Guia de talles
-                </span>
+            {producto.consultarTalle ? (
+              <div className="producto-talles">
+                <span className="etiqueta-campo">Talles</span>
+                <p className="talles-consultar">
+                  <Ruler size={16} /> Escribinos y te decimos que talles hay disponibles de este
+                  modelo.
+                </p>
               </div>
-              <div className="talles-lista">
-                {producto.talles.map((t) => (
-                  <button
-                    key={t}
-                    className={t === talle ? 'activo' : ''}
-                    onClick={() => {
-                      setTalle(t)
-                      setAviso(false)
-                    }}
-                  >
-                    {t}
-                  </button>
-                ))}
+            ) : (
+              <div className="producto-talles">
+                <div className="talles-top">
+                  <span className="etiqueta-campo">
+                    Talle {talle ? <strong>{talle}</strong> : null}
+                  </span>
+                  <span className="guia-talles">
+                    <Ruler size={14} /> {rangoTalles(producto)}
+                  </span>
+                </div>
+                <div className="talles-lista">
+                  {producto.talles.map((t) => (
+                    <button
+                      key={t}
+                      className={t === talle ? 'activo' : ''}
+                      onClick={() => {
+                        setTalle(t)
+                        setAviso(false)
+                      }}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+                {aviso && <p className="aviso-talle">Elegi un talle para continuar</p>}
               </div>
-              {aviso && <p className="aviso-talle">Elegi un talle para continuar</p>}
-            </div>
-
-            <p className="producto-stock">
-              {producto.stock <= 4
-                ? `Ultimas ${producto.stock} unidades`
-                : 'Stock disponible en el local'}
-            </p>
+            )}
 
             <div className="producto-acciones">
-              <button className="btn btn-lima btn-bloque" onClick={alAgregar}>
-                Agregar al carrito
-              </button>
+              {!producto.consultarTalle && (
+                <button className="btn btn-lima btn-bloque" onClick={alAgregar}>
+                  Agregar al carrito
+                </button>
+              )}
               <a
-                className="btn btn-linea btn-bloque"
+                className={`btn btn-bloque ${producto.consultarTalle ? 'btn-lima' : 'btn-linea'}`}
                 href={consulta}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -181,13 +199,13 @@ export default function Producto() {
 
             <ul className="producto-ventajas">
               <li>
-                <Truck size={17} /> Envio gratis desde {precioARS(TIENDA.envioGratisDesde)}
+                <Truck size={17} /> Envios a todo el pais
               </li>
               <li>
                 <CreditCard size={17} /> Hasta {CUOTAS} cuotas sin interes
               </li>
               <li>
-                <RefreshCw size={17} /> Cambio de talle dentro de los 30 dias
+                <RefreshCw size={17} /> Cambio de talle en el local
               </li>
               <li>
                 <MapPin size={17} /> Retiro sin cargo en {TIENDA.ciudad}
@@ -205,8 +223,8 @@ export default function Producto() {
               </div>
             </div>
             <div className="grilla-productos">
-              {relacionados.map((p) => (
-                <ProductCard key={p.id} producto={p} />
+              {relacionados.map((x) => (
+                <ProductCard key={x.id} producto={x} />
               ))}
             </div>
           </section>

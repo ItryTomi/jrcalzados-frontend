@@ -15,8 +15,8 @@ export default function Footer() {
             <Logo invertido />
           </div>
           <p>
-            Zapatillas y calzado deportivo en {TIENDA.ciudad}, {TIENDA.provincia}. Las mejores
-            marcas, atencion personalizada y envios a todo el pais.
+            Zapatillas, sandalias y calzado para toda la familia en {TIENDA.ciudad},{' '}
+            {TIENDA.provincia}. Atencion personalizada y envios a todo el pais.
           </p>
           <div className="pie-redes">
             <a
@@ -38,7 +38,7 @@ export default function Footer() {
           <Link to="/catalogo/hombre">Hombre</Link>
           <Link to="/catalogo/mujer">Mujer</Link>
           <Link to="/catalogo/ninos">Ninos</Link>
-          <Link to="/catalogo/ofertas">Ofertas</Link>
+          <Link to="/catalogo/sandalias">Sandalias</Link>
           <Link to="/catalogo">Todo el catalogo</Link>
         </div>
 

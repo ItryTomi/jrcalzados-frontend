@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Truck } from 'lucide-react'
+import { MessageCircle } from 'lucide-react'
 import { descuento, precioARS, CUOTAS } from '../data/productos'
+import { TIENDA, linkWhatsApp } from '../data/tienda'
 import { useCarrito } from '../context/CartContext'
 import FotoProducto from './FotoProducto'
 import './ProductCard.css'
@@ -12,14 +13,18 @@ export default function ProductCard({ producto }) {
   const off = descuento(producto)
   const cuota = Math.round(producto.precio / CUOTAS)
 
+  const consulta = linkWhatsApp(
+    `Hola ${TIENDA.nombre}! Queria consultar talles de: ${producto.marca} ${producto.nombre} (${color.nombre})`
+  )
+
   return (
     <article className="tarjeta">
       <div className="tarjeta-figura">
         <Link to={`/producto/${producto.id}`} aria-label={producto.nombre}>
           <FotoProducto
-            producto={producto}
+            imagen={color.imagen}
             colorHex={color.hex}
-            alt={producto.nombre}
+            alt={`${producto.nombre} - ${color.nombre}`}
             className="tarjeta-img"
           />
         </Link>
@@ -27,24 +32,34 @@ export default function ProductCard({ producto }) {
         <div className="tarjeta-etiquetas">
           {off > 0 && <span className="et et-off">{off}% OFF</span>}
           {producto.nuevo && <span className="et et-nuevo">Nuevo</span>}
-          {producto.stock <= 4 && <span className="et et-ultimas">Ultimas {producto.stock}</span>}
         </div>
 
-        <div className="tarjeta-rapida">
-          <span>Agregar talle</span>
-          <div className="tarjeta-talles">
-            {producto.talles.map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => agregar(producto, t, color.nombre, 1)}
-                aria-label={`Agregar talle ${t} al carrito`}
-              >
-                {t}
-              </button>
-            ))}
+        {producto.consultarTalle ? (
+          <a
+            className="tarjeta-rapida tarjeta-consulta"
+            href={consulta}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <MessageCircle size={16} /> Consultar talles
+          </a>
+        ) : (
+          <div className="tarjeta-rapida">
+            <span>Agregar talle</span>
+            <div className="tarjeta-talles">
+              {producto.talles.map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => agregar(producto, t, color.nombre, 1)}
+                  aria-label={`Agregar talle ${t} al carrito`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="tarjeta-cuerpo">
@@ -63,12 +78,6 @@ export default function ProductCard({ producto }) {
         <p className="tarjeta-cuotas">
           <strong>{CUOTAS} cuotas sin interes</strong> de {precioARS(cuota)}
         </p>
-
-        {producto.envioGratis && (
-          <p className="tarjeta-envio">
-            <Truck size={14} /> Envio gratis
-          </p>
-        )}
 
         {producto.colores.length > 1 && (
           <div className="tarjeta-colores">
