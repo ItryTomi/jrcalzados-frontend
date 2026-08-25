@@ -1,7 +1,7 @@
 # JR Calzados — web
 
 E-commerce para **JR Calzados** (San Francisco, Córdoba).
-Catálogo con filtros, ficha de producto, carrito y cierre de pedido por WhatsApp.
+Catálogo con filtros, ficha de producto, carrito y pago online con Mercado Pago.
 
 Stack: React 19 + Vite + react-router + CSS por componente (mismo esquema que los otros
 proyectos de Kaairo).
@@ -68,10 +68,10 @@ rangos, sacá esa línea y cargá `talles: rango(36, 40)`.
 | `email` | ⚠️ `ventas@jrcalzados.com.ar` — confirmar si existe |
 | `instagram` | ⚠️ `jrcalzados` — confirmar usuario |
 | `cuotasSinInteres` | ⚠️ puesto en `3` por defecto |
-| `envioGratisActivo` | `false` — la web dice "envíos a todo el país" sin prometer monto |
+| `MP_ACCESS_TOKEN` | ⚠️ falta cargarlo en Vercel — sin eso el botón de pago avisa que no está configurado |
 
-Cuando el local defina el envío gratis: poné `envioGratisActivo: true` y el monto en
-`envioGratisDesde`. Se activa solo la barra de progreso del carrito y el aviso del header.
+El envío está en **gratis a todo el país** (`envioGratisDesde: 0`). Si algún día se pone
+un mínimo, se carga ahí y la web muestra sola la barra de progreso en el carrito.
 
 ---
 
@@ -151,12 +151,16 @@ src/
   components/   Header, Footer, ProductCard, CartDrawer, Logo, FotoProducto, WhatsAppFAB
   context/      CartContext (carrito con persistencia en localStorage)
   data/         productos.js (catálogo) + tienda.js (datos del local)
-  pages/        Home, Catalogo, Producto, Contacto
+  pages/        Home, Catalogo, Producto, Contacto, PagoResultado
+  services/     pago.js (llama a la funcion que crea la preferencia)
+api/            crear-preferencia.js (funcion serverless de Vercel)
   styles/       global.css (tokens de color, tipografía, botones, grillas)
 ```
 
 ## Cómo funciona el pedido
 
-No hay pasarela de pago. El carrito arma un mensaje con los ítems (marca, modelo, talle,
-color, cantidad y total) y abre WhatsApp con todo escrito. Si más adelante quieren
-Mercado Pago, se reemplaza el botón del `CartDrawer` por el checkout.
+Dos caminos desde el carrito:
+
+1. **Pagar ahora** — va a Mercado Pago (ver la sección de pago online más arriba).
+2. **Coordinar por WhatsApp** — arma un mensaje con los ítems (marca, modelo, talle,
+   color, cantidad y total) y abre el chat con todo escrito.
