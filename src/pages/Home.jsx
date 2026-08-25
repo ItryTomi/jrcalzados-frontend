@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, CreditCard, MapPin, Store, Truck } from 'lucide-react'
+import { ArrowRight, MapPin } from 'lucide-react'
 import { PRODUCTOS, MARCAS, precioARS } from '../data/productos'
 import { TIENDA, linkWhatsApp } from '../data/tienda'
 import ProductCard from '../components/ProductCard'
@@ -10,7 +10,7 @@ const SLIDES = [
   {
     rotulo: 'Running 2026',
     titulo: 'Corre mas\nlejos',
-    texto: 'Olympikus, Jaguar y Diportto. Hasta 3 cuotas sin interes.',
+    texto: 'Olympikus, Jaguar y Diportto.',
     cta: 'Ver running',
     link: '/catalogo?uso=Running',
     imagen: '/productos/olympikus-pride4-blanco-coral.jpg',
@@ -19,7 +19,7 @@ const SLIDES = [
   {
     rotulo: 'Urbanas',
     titulo: 'Clasicas\nde siempre',
-    texto: 'Retro runners y lonas para todos los dias, de 36 al 45.',
+    texto: 'Retro runners y lonas para todos los dias.',
     cta: 'Ver urbanas',
     link: '/catalogo?uso=Urbano',
     imagen: '/productos/jaguar-9412-azul.jpg',
@@ -27,8 +27,8 @@ const SLIDES = [
   },
   {
     rotulo: 'Temporada',
-    titulo: 'Sandalias\nLady Comfort',
-    texto: 'Confort real para todo el dia. Consultanos talles disponibles.',
+    titulo: 'Sandalias\nde confort',
+    texto: 'Lady Comfort y Karina, para todo el dia.',
     cta: 'Ver sandalias',
     link: '/catalogo/sandalias',
     imagen: '/productos/ladycomfort-velcro-taupe.jpg',
@@ -36,11 +36,28 @@ const SLIDES = [
   }
 ]
 
+// Cada tarjeta lleva directo a una vista ya filtrada del catalogo.
 const CATEGORIAS_HOME = [
-  { nombre: 'Hombre', link: '/catalogo/hombre', imagen: '/productos/jaguar-9435-negra.jpg' },
-  { nombre: 'Mujer', link: '/catalogo/mujer', imagen: '/productos/jaguar-9394-rosa.jpg' },
+  { nombre: 'Zapatillas hombre', link: '/catalogo/hombre', imagen: '/productos/jaguar-9435-negra.jpg' },
+  { nombre: 'Zapatillas mujer', link: '/catalogo/mujer', imagen: '/productos/jaguar-9394-rosa.jpg' },
   { nombre: 'Ninos', link: '/catalogo/ninos', imagen: '/productos/jaguar-4036-rosa.jpg' },
-  { nombre: 'Sandalias', link: '/catalogo/sandalias', imagen: '/productos/karina-1494-beige.jpg' }
+  { nombre: 'Running', link: '/catalogo?uso=Running', imagen: '/productos/olympikus-lance-menta.jpg' },
+  { nombre: 'Padel y tenis', link: '/catalogo?uso=Padel', imagen: '/productos/diportto-olympiadi-azul.jpg' },
+  { nombre: 'Botitas', link: '/catalogo?tipo=Botitas', imagen: '/productos/jaguar-4351-negra.jpg' },
+  { nombre: 'Lonas', link: '/catalogo?tipo=Lona', imagen: '/productos/jaguar-8074-negra.jpg' },
+  {
+    nombre: 'Sandalias de fiesta',
+    link: '/catalogo/sandalias?uso=Fiesta',
+    imagen: '/productos/ladycomfort-fiesta-plata.jpg'
+  }
+]
+
+// "Un poco de todo": cada bloque muestra 4 y manda al listado completo.
+const VITRINAS = [
+  { titulo: 'Para ellas', rotulo: 'Mujer', link: '/catalogo/mujer', filtro: (x) => x.genero === 'mujer' && x.tipo !== 'Sandalias' },
+  { titulo: 'Para ellos', rotulo: 'Hombre', link: '/catalogo/hombre', filtro: (x) => x.genero === 'hombre' || x.genero === 'unisex' },
+  { titulo: 'Para los chicos', rotulo: 'Ninos', link: '/catalogo/ninos', filtro: (x) => x.genero === 'ninos' },
+  { titulo: 'Sandalias', rotulo: 'Temporada', link: '/catalogo/sandalias', filtro: (x) => x.tipo === 'Sandalias' }
 ]
 
 export default function Home() {
@@ -52,19 +69,14 @@ export default function Home() {
   }, [])
 
   const destacados = PRODUCTOS.filter((x) => x.destacado).slice(0, 8)
-  const nuevos = PRODUCTOS.filter((x) => x.nuevo).slice(0, 4)
   const masBarato = Math.min(...PRODUCTOS.map((x) => x.precio))
   const s = SLIDES[slide]
 
-  const BENEFICIOS = [
-    { icono: Truck, titulo: 'Envios a todo el pais', texto: 'Coordinamos al confirmar el pedido' },
-    {
-      icono: CreditCard,
-      titulo: `${TIENDA.cuotasSinInteres} cuotas sin interes`,
-      texto: 'Con todas las tarjetas'
-    },
-    { icono: Store, titulo: 'Retiro en el local', texto: 'Sin cargo, comprando online' },
-    { icono: MapPin, titulo: 'Local a la calle', texto: `${TIENDA.ciudad}, ${TIENDA.provincia}` }
+  const avisos = [
+    `${TIENDA.cuotasSinInteres} cuotas sin interes`,
+    'Envios a todo el pais',
+    `Retiro sin cargo en ${TIENDA.ciudad}`,
+    'Cambio de talle en el local'
   ]
 
   return (
@@ -96,16 +108,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ---------- BENEFICIOS ---------- */}
-      <section className="beneficios">
-        <div className="contenedor beneficios-int">
-          {BENEFICIOS.map(({ icono: Icono, titulo, texto }) => (
-            <div className="beneficio" key={titulo}>
-              <Icono size={24} strokeWidth={1.7} />
-              <div>
-                <strong>{titulo}</strong>
-                <span>{texto}</span>
-              </div>
+      {/* ---------- TICKER DE BENEFICIOS ---------- */}
+      <section className="ticker" aria-label="Beneficios">
+        <div className="ticker-pista">
+          {[0, 1, 2].map((v) => (
+            <div className="ticker-grupo" key={v} aria-hidden={v > 0}>
+              {avisos.map((a) => (
+                <span key={a}>{a}</span>
+              ))}
             </div>
           ))}
         </div>
@@ -116,8 +126,8 @@ export default function Home() {
         <div className="contenedor">
           <div className="seccion-cabecera">
             <div>
-              <span className="rotulo">Elegi por categoria</span>
-              <h2>Que estas buscando</h2>
+              <span className="rotulo">Entra directo a lo que buscas</span>
+              <h2>Categorias</h2>
             </div>
             <Link to="/catalogo" className="link-todos">
               Ver todo
@@ -128,7 +138,7 @@ export default function Home() {
               <Link key={c.nombre} to={c.link} className="categoria">
                 <img src={c.imagen} alt={c.nombre} loading="lazy" />
                 <span className="categoria-nombre">
-                  {c.nombre} <ArrowRight size={17} />
+                  {c.nombre} <ArrowRight size={16} />
                 </span>
               </Link>
             ))}
@@ -175,34 +185,53 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ---------- NUEVOS ---------- */}
-      <section className="seccion">
-        <div className="contenedor">
-          <div className="seccion-cabecera">
-            <div>
-              <span className="rotulo">Recien llegados</span>
-              <h2>Nuevos ingresos</h2>
+      {/* ---------- UN POCO DE TODO ---------- */}
+      {VITRINAS.map((v) => {
+        const items = PRODUCTOS.filter(v.filtro).slice(0, 4)
+        if (!items.length) return null
+        return (
+          <section className="seccion" key={v.titulo}>
+            <div className="contenedor">
+              <div className="seccion-cabecera">
+                <div>
+                  <span className="rotulo">{v.rotulo}</span>
+                  <h2>{v.titulo}</h2>
+                </div>
+                <Link to={v.link} className="link-todos">
+                  Ver todos
+                </Link>
+              </div>
+              <div className="grilla-productos">
+                {items.map((x) => (
+                  <ProductCard key={x.id} producto={x} />
+                ))}
+              </div>
+              <div className="vitrina-pie">
+                <Link to={v.link} className="btn btn-linea">
+                  Ver todo {v.rotulo.toLowerCase()} <ArrowRight size={16} />
+                </Link>
+              </div>
             </div>
-            <Link to="/catalogo" className="link-todos">
-              Ver todo
-            </Link>
-          </div>
-          <div className="grilla-productos">
-            {nuevos.map((x) => (
-              <ProductCard key={x.id} producto={x} />
-            ))}
-          </div>
-        </div>
-      </section>
+          </section>
+        )
+      })}
 
       {/* ---------- MARCAS ---------- */}
       <section className="tira-marcas">
-        <div className="contenedor tira-marcas-int">
-          {MARCAS.map((m) => (
-            <Link key={m} to={`/catalogo?marca=${encodeURIComponent(m)}`}>
-              {m}
-            </Link>
-          ))}
+        <div className="contenedor">
+          <div className="seccion-cabecera">
+            <div>
+              <span className="rotulo">Trabajamos con</span>
+              <h2>Nuestras marcas</h2>
+            </div>
+          </div>
+          <div className="tira-marcas-int">
+            {MARCAS.map((m) => (
+              <Link key={m} to={`/catalogo?marca=${encodeURIComponent(m)}`}>
+                {m}
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -214,7 +243,9 @@ export default function Home() {
             <h2>
               Estamos en {TIENDA.ciudad}, {TIENDA.provincia}
             </h2>
-            <p className="bloque-local-dir">{TIENDA.direccion}</p>
+            <p className="bloque-local-dir">
+              <MapPin size={16} /> {TIENDA.direccion}
+            </p>
             <p className="bloque-local-hor">{TIENDA.horarios}</p>
             <div className="bloque-local-botones">
               <Link to="/contacto" className="btn btn-negro">
@@ -234,7 +265,7 @@ export default function Home() {
             <iframe
               title="Ubicacion del local"
               src={`https://www.google.com/maps?q=${encodeURIComponent(
-                `${TIENDA.direccion}`
+                TIENDA.direccion
               )}&output=embed`}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"

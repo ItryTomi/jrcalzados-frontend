@@ -112,9 +112,7 @@ export default function Header() {
             </div>
           </div>
 
-          <NavLink to="/catalogo/sandalias" className="nav-ofertas">
-            Sandalias
-          </NavLink>
+          <NavLink to="/catalogo/sandalias">Sandalias</NavLink>
           <NavLink to="/contacto">Contacto</NavLink>
 
           <span className="nav-local">
@@ -148,9 +146,7 @@ export default function Header() {
               <Link to="/catalogo/hombre">Hombre</Link>
               <Link to="/catalogo/mujer">Mujer</Link>
               <Link to="/catalogo/ninos">Ninos</Link>
-              <Link to="/catalogo/sandalias" className="destacado">
-                Sandalias
-              </Link>
+              <Link to="/catalogo/sandalias">Sandalias</Link>
               <Link to="/catalogo">Ver todo el catalogo</Link>
               <Link to="/contacto">Contacto</Link>
             </nav>
