@@ -132,15 +132,68 @@ servidor.
 El backend ademas rechaza: productos que no existen, talles que ese modelo no tiene,
 carritos vacios, mas de 30 lineas y mas de 10 unidades por linea.
 
-### Lo que falta para operar en serio
+### Registro de ventas
 
-- **Webhook de confirmacion.** Hoy la web muestra "pago aprobado" en base a la vuelta de
-  Mercado Pago. Para registrar la venta del lado del local hay que agregar
-  `api/webhook-mp.js` y guardar los pedidos en algun lado.
-- **Control de stock.** El catalogo no lleva stock, asi que se puede vender un talle que
-  ya no esta. Por ahora hay que revisar cada pedido a mano.
-- **Datos de envio.** Checkout Pro pide nombre, mail y telefono, pero no la direccion de
-  entrega. Hoy se coordina por WhatsApp despues del pago.
+`api/webhook-mp.js` es la **unica confirmacion confiable** de que algo se pago.
+La vuelta del navegador a `/pago/exito` no sirve como prueba: cualquiera puede
+escribir esa URL a mano. El webhook, en cambio, le vuelve a preguntar a Mercado
+Pago por el pago usando el Access Token del servidor.
+
+Flujo completo:
+
+1. El comprador aprieta Pagar -> `crear-preferencia` calcula el total con precios
+   del servidor, guarda el pedido como `iniciado` y lo manda a Mercado Pago.
+2. Paga -> Mercado Pago llama a `/api/webhook-mp`.
+3. El webhook consulta el pago, pasa el pedido a `pagado` y manda el mail al local.
+
+Es idempotente: Mercado Pago puede repetir la notificacion y el mail sale una sola vez.
+
+### Base de datos (Neon)
+
+1. Crear una base gratis en https://neon.tech (el plan free permite uso comercial).
+2. Copiar la *connection string* y cargarla como `DATABASE_URL`.
+
+La tabla `pedidos` se crea sola en el primer uso, no hay que correr migraciones.
+
+**La base es opcional**: si no esta configurada el cobro igual funciona, solo que
+no queda registro.
+
+### Ver los pedidos
+
+```
+curl -H "Authorization: Bearer $ADMIN_TOKEN" https://<tu-dominio>/api/pedidos
+```
+
+Es la vista minima hasta que exista un panel con login.
+
+### Variables de entorno
+
+Todas van en Vercel > Settings > Environment Variables. Ver `.env.example`.
+
+| Variable | Para que | Obligatoria |
+|---|---|---|
+| `MP_ACCESS_TOKEN` | Cobrar con Mercado Pago | Si |
+| `DATABASE_URL` | Guardar los pedidos (Neon) | Recomendada |
+| `MP_WEBHOOK_SECRET` | Validar que el webhook sea de MP | Recomendada |
+| `RESEND_API_KEY` + `MAIL_AVISOS` | Mail al local en cada venta | Opcional |
+| `ADMIN_TOKEN` | Consultar `/api/pedidos` | Opcional |
+
+En el panel de Mercado Pago hay que registrar la URL del webhook:
+`https://<tu-dominio>/api/webhook-mp`, evento **Pagos**.
+
+### Lo que todavia falta
+
+- **Control de stock.** El catalogo no lleva stock, asi que se puede vender un talle
+  que ya no esta. Hay que revisar cada pedido a mano.
+- **Direccion de envio.** Checkout Pro pide nombre, mail y telefono, no la direccion.
+  Hoy se coordina por WhatsApp despues del pago.
+- **Panel de administracion.** Hoy los pedidos se ven por API o por mail.
+- **Textos legales.** Vender online en Argentina exige boton de arrepentimiento,
+  enlace a Defensa del Consumidor, terminos y condiciones y politica de cambios.
+  Conviene confirmarlo con el contador del cliente.
+- **Plan de Vercel.** El plan Hobby es para proyectos personales sin fines
+  comerciales. Cuando la tienda empiece a cobrar hay que pasar a Pro o mudar las
+  funciones a un proveedor cuyo plan gratuito permita uso comercial.
 
 ---
 
@@ -153,7 +206,11 @@ src/
   data/         productos.js (catálogo) + tienda.js (datos del local)
   pages/        Home, Catalogo, Producto, Contacto, PagoResultado
   services/     pago.js (llama a la funcion que crea la preferencia)
-api/            crear-preferencia.js (funcion serverless de Vercel)
+api/            funciones serverless de Vercel
+  crear-preferencia.js  arma el cobro (precios del servidor)
+  webhook-mp.js         confirma el pago y avisa al local
+  pedidos.js            listado para el local (con token)
+  _db.js / _aviso.js    base de datos y mail
   styles/       global.css (tokens de color, tipografía, botones, grillas)
 ```
 

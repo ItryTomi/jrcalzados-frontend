@@ -9,6 +9,7 @@
 // el pedido y pagar $1.
 
 import { PRODUCTOS } from '../src/data/productos.js'
+import { hayBase, guardarPedidoIniciado } from './_db.js'
 
 const MAX_UNIDADES_POR_LINEA = 10
 const MAX_LINEAS = 30
@@ -88,6 +89,7 @@ export default async function handler(req, res) {
   }
 
   const orden = `JR-${Date.now().toString(36).toUpperCase()}`
+  const total = detalle.reduce((a, i) => a + i.unit_price * i.quantity, 0)
 
   const preferencia = {
     items: detalle,
@@ -99,6 +101,9 @@ export default async function handler(req, res) {
       pending: `${base}/pago/pendiente?orden=${orden}`
     },
     auto_return: 'approved',
+    // Por aca Mercado Pago avisa si el pago se aprobo. Es la unica
+    // confirmacion confiable: la vuelta del navegador no alcanza.
+    notification_url: `${base}/api/webhook-mp`,
     // Envio gratis a todo el pais: el costo va en 0 y se coordina despues.
     shipments: { cost: 0, mode: 'not_specified' },
     metadata: { orden, envio: 'gratis' }
@@ -120,6 +125,16 @@ export default async function handler(req, res) {
     if (!r.ok) {
       console.error('Mercado Pago rechazo la preferencia:', r.status, data)
       return res.status(502).json({ error: 'No pudimos iniciar el pago. Proba de nuevo.' })
+    }
+
+    // Guarda el pedido antes de mandar a pagar, asi el webhook despues sabe
+    // que se compro. Si la base no esta configurada el cobro igual sigue.
+    if (hayBase()) {
+      try {
+        await guardarPedidoIniciado({ orden, total, items: detalle, preferenciaId: data.id })
+      } catch (e) {
+        console.error('No se pudo guardar el pedido:', e.message)
+      }
     }
 
     // Con credenciales de prueba hay que mandar al checkout de sandbox.
