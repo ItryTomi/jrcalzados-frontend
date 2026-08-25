@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Clock, Mail, MapPin, Phone } from 'lucide-react'
 import { Instagram } from './IconosSociales'
 import { MARCAS } from '../data/productos'
+import { LINK_DEFENSA_CONSUMIDOR, RAZON_SOCIAL, CUIT } from '../data/legales'
 import { TIENDA } from '../data/tienda'
 import Logo from './Logo'
 import './Footer.css'
@@ -43,12 +44,14 @@ export default function Footer() {
         </div>
 
         <div className="pie-col">
-          <h4>Marcas</h4>
-          {MARCAS.slice(0, 6).map((m) => (
-            <Link key={m} to={`/catalogo?marca=${encodeURIComponent(m)}`}>
-              {m}
-            </Link>
-          ))}
+          <h4>Ayuda</h4>
+          <Link to="/legales/terminos">Terminos y condiciones</Link>
+          <Link to="/legales/cambios">Cambios y devoluciones</Link>
+          <Link to="/legales/privacidad">Politica de privacidad</Link>
+          <Link to="/arrepentimiento" className="pie-arrepentimiento">
+            Boton de arrepentimiento
+          </Link>
+          <Link to="/contacto">Contacto</Link>
         </div>
 
         <div className="pie-col">
@@ -71,7 +74,14 @@ export default function Footer() {
       <div className="pie-legal">
         <div className="contenedor pie-legal-int">
           <span>
-            &copy; {new Date().getFullYear()} {TIENDA.nombre}. Todos los derechos reservados.
+            &copy; {new Date().getFullYear()} {TIENDA.nombre} &middot; {RAZON_SOCIAL} &middot;
+            CUIT {CUIT}
+            <br />
+            Defensa de las y los consumidores. Para reclamos{' '}
+            <a href={LINK_DEFENSA_CONSUMIDOR} target="_blank" rel="noopener noreferrer">
+              ingresa aca
+            </a>
+            .
           </span>
           <span className="pie-credito">
             Sitio desarrollado por{' '}

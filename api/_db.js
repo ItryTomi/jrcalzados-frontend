@@ -36,18 +36,29 @@ export async function asegurarTablas() {
       actualizado_en timestamptz NOT NULL DEFAULT now()
     )
   `
+  await sql`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS entrega jsonb`
   await sql`CREATE INDEX IF NOT EXISTS pedidos_estado_idx ON pedidos (estado, creado_en DESC)`
   tablasListas = true
 }
 
-export async function guardarPedidoIniciado({ orden, total, items, preferenciaId }) {
+export async function guardarPedidoIniciado({
+  orden,
+  total,
+  items,
+  preferenciaId,
+  comprador,
+  entrega
+}) {
   await asegurarTablas()
   const sql = db()
   await sql`
-    INSERT INTO pedidos (orden, estado, total, items, preferencia_id)
-    VALUES (${orden}, 'iniciado', ${total}, ${JSON.stringify(items)}, ${preferenciaId})
+    INSERT INTO pedidos (orden, estado, total, items, preferencia_id, comprador, entrega)
+    VALUES (${orden}, 'iniciado', ${total}, ${JSON.stringify(items)}, ${preferenciaId},
+            ${JSON.stringify(comprador || null)}, ${JSON.stringify(entrega || null)})
     ON CONFLICT (orden) DO UPDATE
       SET preferencia_id = EXCLUDED.preferencia_id,
+          comprador      = COALESCE(EXCLUDED.comprador, pedidos.comprador),
+          entrega        = COALESCE(EXCLUDED.entrega, pedidos.entrega),
           actualizado_en = now()
   `
 }
@@ -66,7 +77,7 @@ export async function actualizarEstadoPedido({ orden, estado, pagoId, medioPago,
             ${pagoId}, ${medioPago})
     ON CONFLICT (orden) DO UPDATE
       SET estado         = EXCLUDED.estado,
-          comprador      = COALESCE(EXCLUDED.comprador, pedidos.comprador),
+          comprador      = COALESCE(pedidos.comprador, EXCLUDED.comprador),
           pago_id        = EXCLUDED.pago_id,
           medio_pago     = EXCLUDED.medio_pago,
           actualizado_en = now()

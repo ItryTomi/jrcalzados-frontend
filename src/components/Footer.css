@@ -75,3 +75,7 @@
 @media (max-width: 560px) {
   .pie-grilla { grid-template-columns: 1fr; }
 }
+
+.pie-arrepentimiento { color: var(--lima) !important; font-weight: 600; }
+.pie-legal-int a { color: var(--lima); text-decoration: underline; }
+.pie-legal-int span { line-height: 1.7; }

@@ -1,19 +1,15 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Lock, Minus, Plus, ShoppingBag, Trash2, Truck, X } from 'lucide-react'
 import { useCarrito } from '../context/CartContext'
 import { useBloquearScroll } from '../hooks/useBloquearScroll'
 import { precioARS, CUOTAS } from '../data/productos'
 import { TIENDA, linkWhatsApp } from '../data/tienda'
-import { iniciarPago } from '../services/pago'
 import FotoProducto from './FotoProducto'
 import './CartDrawer.css'
 
 export default function CartDrawer() {
   const { lineas, unidades, subtotal, abierto, cerrar, cambiarCantidad, quitar, vaciar } =
     useCarrito()
-  const [pagando, setPagando] = useState(false)
-  const [errorPago, setErrorPago] = useState(null)
   useBloquearScroll(abierto)
 
   if (!abierto) return null
@@ -30,18 +26,6 @@ export default function CartDrawer() {
     '',
     `Total: ${precioARS(subtotal)}`
   ].join('\n')
-
-  const pagar = async () => {
-    setErrorPago(null)
-    setPagando(true)
-    try {
-      const { url } = await iniciarPago(lineas)
-      window.location.href = url
-    } catch (e) {
-      setErrorPago(e.message)
-      setPagando(false)
-    }
-  }
 
   return (
     <div className="carrito" role="dialog" aria-label="Carrito de compras">
@@ -125,11 +109,9 @@ export default function CartDrawer() {
                 Hasta {CUOTAS} cuotas sin interes de {precioARS(Math.round(subtotal / CUOTAS))}
               </p>
 
-              {errorPago && <p className="carrito-error">{errorPago}</p>}
-
-              <button className="btn btn-lima btn-bloque" onClick={pagar} disabled={pagando}>
-                {pagando ? 'Abriendo el pago...' : 'Pagar ahora'}
-              </button>
+              <Link className="btn btn-lima btn-bloque" to="/checkout" onClick={cerrar}>
+                Finalizar compra
+              </Link>
 
               <p className="carrito-seguro">
                 <Lock size={13} /> Pago protegido por Mercado Pago. Tarjetas, debito y billetera.

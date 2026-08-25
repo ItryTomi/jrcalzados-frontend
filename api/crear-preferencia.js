@@ -14,6 +14,28 @@ import { hayBase, guardarPedidoIniciado } from './_db.js'
 const MAX_UNIDADES_POR_LINEA = 10
 const MAX_LINEAS = 30
 
+const texto = (v, max = 120) => String(v ?? '').trim().slice(0, max)
+const esMail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+
+// El formulario ya valida del lado del navegador, pero eso se puede saltear:
+// aca se vuelve a validar antes de crear el cobro.
+function revisarDatos(comprador, entrega) {
+  if (!comprador) return 'Faltan tus datos de contacto'
+  if (!texto(comprador.nombre)) return 'Falta el nombre'
+  if (!texto(comprador.apellido)) return 'Falta el apellido'
+  if (!esMail(texto(comprador.email))) return 'El mail no es valido'
+  if (texto(comprador.telefono).replace(/\D/g, '').length < 8) return 'Falta el telefono'
+
+  if (!entrega || !['envio', 'retiro'].includes(entrega.modo)) return 'Elegi como recibir el pedido'
+  if (entrega.modo === 'envio') {
+    if (!texto(entrega.calle)) return 'Falta la calle'
+    if (!texto(entrega.numero)) return 'Falta la altura'
+    if (!texto(entrega.ciudad)) return 'Falta la localidad'
+    if (!/^\d{4}$/.test(texto(entrega.cp))) return 'El codigo postal es invalido'
+  }
+  return null
+}
+
 const urlBase = (req) => {
   const proto = req.headers['x-forwarded-proto'] || 'https'
   const host = req.headers['x-forwarded-host'] || req.headers.host
@@ -47,13 +69,16 @@ export default async function handler(req, res) {
   const cuerpo = await leerCuerpo(req)
   if (!cuerpo) return res.status(400).json({ error: 'Pedido invalido' })
 
-  const { items } = cuerpo
+  const { items, comprador, entrega } = cuerpo
   if (!Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: 'El carrito esta vacio' })
   }
   if (items.length > MAX_LINEAS) {
     return res.status(400).json({ error: 'Demasiados productos en el pedido' })
   }
+
+  const problema = revisarDatos(comprador, entrega)
+  if (problema) return res.status(400).json({ error: problema })
 
   const base = urlBase(req)
   const detalle = []
@@ -101,12 +126,35 @@ export default async function handler(req, res) {
       pending: `${base}/pago/pendiente?orden=${orden}`
     },
     auto_return: 'approved',
+    payer: {
+      name: texto(comprador.nombre, 60),
+      surname: texto(comprador.apellido, 60),
+      email: texto(comprador.email, 120),
+      phone: { area_code: '', number: texto(comprador.telefono, 30) },
+      ...(texto(comprador.dni)
+        ? { identification: { type: 'DNI', number: texto(comprador.dni, 15) } }
+        : {})
+    },
     // Por aca Mercado Pago avisa si el pago se aprobo. Es la unica
     // confirmacion confiable: la vuelta del navegador no alcanza.
     notification_url: `${base}/api/webhook-mp`,
-    // Envio gratis a todo el pais: el costo va en 0 y se coordina despues.
-    shipments: { cost: 0, mode: 'not_specified' },
-    metadata: { orden, envio: 'gratis' }
+    // Envio gratis a todo el pais: el costo va en 0.
+    shipments:
+      entrega.modo === 'envio'
+        ? {
+            cost: 0,
+            mode: 'not_specified',
+            receiver_address: {
+              street_name: texto(entrega.calle, 80),
+              street_number: texto(entrega.numero, 12),
+              floor: texto(entrega.piso, 20),
+              zip_code: texto(entrega.cp, 8),
+              city_name: texto(entrega.ciudad, 60),
+              state_name: texto(entrega.provincia, 60)
+            }
+          }
+        : { cost: 0, mode: 'not_specified' },
+    metadata: { orden, entrega: entrega.modo }
   }
 
   try {
@@ -131,7 +179,19 @@ export default async function handler(req, res) {
     // que se compro. Si la base no esta configurada el cobro igual sigue.
     if (hayBase()) {
       try {
-        await guardarPedidoIniciado({ orden, total, items: detalle, preferenciaId: data.id })
+        await guardarPedidoIniciado({
+          orden,
+          total,
+          items: detalle,
+          preferenciaId: data.id,
+          comprador: {
+            nombre: `${texto(comprador.nombre, 60)} ${texto(comprador.apellido, 60)}`.trim(),
+            email: texto(comprador.email, 120),
+            telefono: texto(comprador.telefono, 30),
+            documento: texto(comprador.dni, 15) || null
+          },
+          entrega
+        })
       } catch (e) {
         console.error('No se pudo guardar el pedido:', e.message)
       }

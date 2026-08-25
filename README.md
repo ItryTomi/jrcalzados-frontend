@@ -181,16 +181,33 @@ Todas van en Vercel > Settings > Environment Variables. Ver `.env.example`.
 En el panel de Mercado Pago hay que registrar la URL del webhook:
 `https://<tu-dominio>/api/webhook-mp`, evento **Pagos**.
 
+### Checkout
+
+`/checkout` pide los datos antes de mandar a pagar: nombre, apellido, mail, telefono,
+DNI opcional, y si elige envio la direccion completa. Se guardan en el navegador para
+no volver a escribirlos en la proxima compra.
+
+Todo se **vuelve a validar en el servidor**: el formulario del navegador se puede
+saltear, asi que `crear-preferencia` rechaza mails invalidos, telefonos cortos,
+direcciones incompletas y codigos postales que no sean 4 numeros.
+
+Los datos viajan a Mercado Pago como `payer` y `shipments.receiver_address`, se
+guardan en el pedido y salen en el mail de aviso al local.
+
+### Legales
+
+Paginas en `/legales/terminos`, `/legales/cambios`, `/legales/privacidad` y
+`/arrepentimiento`, enlazadas desde el pie en todas las paginas.
+
+**Los textos son borradores, no estan revisados por un abogado.** Estan en
+`src/data/legales.js` y hay dos datos por completar antes de publicar:
+`RAZON_SOCIAL` y `CUIT`. Tienen que pasar por el contador o el abogado de JR.
+
 ### Lo que todavia falta
 
 - **Control de stock.** El catalogo no lleva stock, asi que se puede vender un talle
   que ya no esta. Hay que revisar cada pedido a mano.
-- **Direccion de envio.** Checkout Pro pide nombre, mail y telefono, no la direccion.
-  Hoy se coordina por WhatsApp despues del pago.
 - **Panel de administracion.** Hoy los pedidos se ven por API o por mail.
-- **Textos legales.** Vender online en Argentina exige boton de arrepentimiento,
-  enlace a Defensa del Consumidor, terminos y condiciones y politica de cambios.
-  Conviene confirmarlo con el contador del cliente.
 - **Plan de Vercel.** El plan Hobby es para proyectos personales sin fines
   comerciales. Cuando la tienda empiece a cobrar hay que pasar a Pro o mudar las
   funciones a un proveedor cuyo plan gratuito permita uso comercial.

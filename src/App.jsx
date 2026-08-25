@@ -8,6 +8,9 @@ import Home from './pages/Home'
 import Catalogo from './pages/Catalogo'
 import Producto from './pages/Producto'
 import Contacto from './pages/Contacto'
+import Checkout from './pages/Checkout'
+import Legales from './pages/Legales'
+import Arrepentimiento from './pages/Arrepentimiento'
 import PagoResultado from './pages/PagoResultado'
 
 function IrArriba() {
@@ -30,7 +33,10 @@ export default function App() {
           <Route path="/catalogo/:categoria" element={<Catalogo />} />
           <Route path="/producto/:id" element={<Producto />} />
           <Route path="/contacto" element={<Contacto />} />
+          <Route path="/checkout" element={<Checkout />} />
           <Route path="/pago/:estado" element={<PagoResultado />} />
+          <Route path="/legales/:doc" element={<Legales />} />
+          <Route path="/arrepentimiento" element={<Arrepentimiento />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </main>

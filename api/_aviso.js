@@ -29,6 +29,20 @@ export async function avisarVenta(pedido) {
     .join('')
 
   const comprador = pedido.comprador || {}
+  const entrega = pedido.entrega || {}
+
+  const bloqueEntrega =
+    entrega.modo === 'envio'
+      ? `<h3 style="margin:0 0 6px;font-size:15px">Enviar a</h3>
+         <p style="margin:0 0 4px;font-size:14px">
+           ${entrega.calle || ''} ${entrega.numero || ''}${entrega.piso ? `, ${entrega.piso}` : ''}
+         </p>
+         <p style="margin:0 0 4px;font-size:14px">
+           ${entrega.ciudad || ''}, ${entrega.provincia || ''} (CP ${entrega.cp || '-'})
+         </p>
+         ${entrega.notas ? `<p style="margin:0 0 18px;font-size:14px;color:#666">Nota: ${entrega.notas}</p>` : '<div style="height:18px"></div>'}`
+      : `<h3 style="margin:0 0 6px;font-size:15px">Retira en el local</h3>
+         ${entrega.notas ? `<p style="margin:0 0 18px;font-size:14px;color:#666">Nota: ${entrega.notas}</p>` : '<div style="height:18px"></div>'}`
 
   const html = `
     <div style="font-family:Arial,sans-serif;color:#141414;max-width:640px">
@@ -56,13 +70,13 @@ export async function avisarVenta(pedido) {
       <p style="margin:0 0 4px;font-size:14px">${comprador.email || 'Sin mail'}</p>
       <p style="margin:0 0 18px;font-size:14px">${comprador.telefono || 'Sin telefono'}</p>
 
+      ${bloqueEntrega}
+
       <p style="font-size:13px;color:#666">
         Medio de pago: ${pedido.medio_pago || 'no informado'}<br>
         Pago Mercado Pago: ${pedido.pago_id || '-'}
       </p>
-      <p style="font-size:13px;color:#666">
-        Recorda coordinar el envio con el comprador: la web no pide la direccion.
-      </p>
+
     </div>
   `
 

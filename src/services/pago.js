@@ -3,7 +3,7 @@
 
 const CLAVE_ORDEN = 'jr-ultima-orden'
 
-export async function iniciarPago(lineas) {
+export async function iniciarPago(lineas, datos = {}) {
   const r = await fetch('/api/crear-preferencia', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -13,7 +13,9 @@ export async function iniciarPago(lineas) {
         talle: l.talle,
         color: l.color,
         cantidad: l.cantidad
-      }))
+      })),
+      comprador: datos.comprador,
+      entrega: datos.entrega
     })
   })
 
