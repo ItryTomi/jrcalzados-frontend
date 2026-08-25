@@ -1,0 +1,92 @@
+.contacto-hero {
+  background: var(--negro);
+  color: var(--blanco);
+  padding: 52px 0;
+  margin-bottom: 46px;
+}
+.contacto-hero h1 { font-size: clamp(2.2rem, 6vw, 3.6rem); margin-bottom: 12px; }
+.contacto-hero p { margin: 0; max-width: 52ch; color: rgba(255, 255, 255, .76); }
+.rotulo-lima { color: var(--lima); }
+
+.contacto-grilla {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 46px;
+  align-items: start;
+  padding-bottom: 20px;
+}
+
+.contacto-datos h2,
+.contacto-form h2 { font-size: 1.7rem; margin-bottom: 18px; }
+
+.contacto-datos ul {
+  list-style: none;
+  margin: 0 0 26px;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+.contacto-datos li { display: flex; gap: 13px; align-items: flex-start; }
+.contacto-datos li svg { color: var(--lima-osc); margin-top: 3px; flex-shrink: 0; }
+.contacto-datos li div { display: flex; flex-direction: column; gap: 2px; }
+.contacto-datos li strong {
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--gris-txt);
+}
+.contacto-datos li span,
+.contacto-datos li a { font-size: .92rem; line-height: 1.55; }
+.contacto-datos li a:hover { color: var(--lima-osc); }
+
+.contacto-mapa {
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radio);
+  overflow: hidden;
+  background: var(--gris-bg);
+}
+.contacto-mapa iframe { width: 100%; height: 100%; border: 0; }
+
+.contacto-form {
+  background: var(--gris-bg);
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radio);
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.contacto-form-ayuda { margin: -8px 0 4px; font-size: .84rem; color: var(--gris-txt); }
+.contacto-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--gris-txt);
+}
+.contacto-form input,
+.contacto-form textarea {
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radio);
+  padding: 11px 13px;
+  font-family: inherit;
+  font-size: .9rem;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--negro);
+  background: var(--blanco);
+  outline: none;
+  resize: vertical;
+}
+.contacto-form input:focus,
+.contacto-form textarea:focus { border-color: var(--negro); }
+
+@media (max-width: 900px) {
+  .contacto-grilla { grid-template-columns: 1fr; gap: 32px; }
+}

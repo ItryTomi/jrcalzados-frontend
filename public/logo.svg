@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="JR Calzados">
+  <circle cx="160" cy="160" r="158" fill="#ffffff"/>
+  <g fill="#0d0d0d">
+    <path d="M104 44h44v128c0 26-19 44-46 44-25 0-44-16-47-40l38-6c1 8 5 12 11 12 7 0 10-5 10-14V44z"/>
+    <path d="M164 44h44v168h-44z"/>
+  </g>
+  <path d="M212 52h56l-40 74-16-30z" fill="#a3cc1e"/>
+  <path d="M168 226c14-10 26-24 40-30 10-4 18 2 26 10 8 7 20 10 34 10v20H150c0-4 6-8 18-10z" fill="#0d0d0d"/>
+  <text x="160" y="272" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-size="42" font-style="italic" font-weight="900" fill="#0d0d0d">JR <tspan fill="#a3cc1e">CALZADOS</tspan></text>
+  <text x="160" y="298" text-anchor="middle" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#0d0d0d">SAN FRANCISCO - CORDOBA</text>
+</svg>

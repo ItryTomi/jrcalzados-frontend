@@ -1,0 +1,33 @@
+.wa-fab {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 90;
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  background: #25d366;
+  color: #fff;
+  border-radius: 999px;
+  padding: 14px;
+  box-shadow: 0 8px 22px rgba(37, 211, 102, .42);
+  transition: gap .22s, padding .22s, transform .16s;
+}
+.wa-fab span {
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  transition: max-width .22s;
+}
+.wa-fab:hover { gap: 9px; padding-right: 20px; transform: translateY(-2px); }
+.wa-fab:hover span { max-width: 130px; }
+
+@media (max-width: 820px) {
+  .wa-fab { right: 14px; bottom: 14px; padding: 13px; }
+  .wa-fab:hover span { max-width: 0; }
+  .wa-fab:hover { gap: 0; padding-right: 13px; }
+}
