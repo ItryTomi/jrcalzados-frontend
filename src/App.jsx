@@ -8,6 +8,7 @@ import Home from './pages/Home'
 import Catalogo from './pages/Catalogo'
 import Producto from './pages/Producto'
 import Contacto from './pages/Contacto'
+import PagoResultado from './pages/PagoResultado'
 
 function IrArriba() {
   const { pathname } = useLocation()
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="/catalogo/:categoria" element={<Catalogo />} />
           <Route path="/producto/:id" element={<Producto />} />
           <Route path="/contacto" element={<Contacto />} />
+          <Route path="/pago/:estado" element={<PagoResultado />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </main>

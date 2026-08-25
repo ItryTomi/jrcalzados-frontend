@@ -9,9 +9,9 @@ import './Header.css'
 
 const AVISOS = [
   'RETIRA EN NUESTRO LOCAL DE SAN FRANCISCO SIN CARGO',
-  TIENDA.envioGratisActivo
+  TIENDA.envioGratisDesde > 0
     ? `ENVIO GRATIS EN COMPRAS DESDE $${TIENDA.envioGratisDesde.toLocaleString('es-AR')}`
-    : 'ENVIOS A TODO EL PAIS',
+    : 'ENVIO GRATIS A TODO EL PAIS',
   `HASTA ${TIENDA.cuotasSinInteres} CUOTAS SIN INTERES CON TARJETA`
 ]
 

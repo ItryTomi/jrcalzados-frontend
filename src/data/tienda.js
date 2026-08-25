@@ -16,10 +16,8 @@ export const TIENDA = {
   // Cuotas sin interes que ofrece el local.
   cuotasSinInteres: 3,
 
-  // Envio gratis: poner en true y fijar el monto cuando el local
-  // defina la politica. Mientras este en false la web solo dice
-  // "envios a todo el pais", sin prometer un monto.
-  envioGratisActivo: false,
+  // Envio gratis a todo el pais, sin monto minimo.
+  envioGratisActivo: true,
   envioGratisDesde: 0
 }
 

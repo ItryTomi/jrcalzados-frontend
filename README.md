@@ -99,6 +99,51 @@ Cuando el local defina el envío gratis: poné `envioGratisActivo: true` y el mo
 
 ---
 
+## Pago online (Mercado Pago)
+
+Checkout Pro: el comprador paga con tarjeta de credito, debito, dinero en cuenta de
+Mercado Pago o efectivo (Rapipago / Pago Facil). **Envio gratis a todo el pais**, sin
+monto minimo.
+
+**No hace falta un backend aparte ni Railway.** El unico codigo de servidor es
+`api/crear-preferencia.js`, una funcion serverless que Vercel corre dentro del mismo
+proyecto y que en el plan Hobby es gratis.
+
+### Ponerlo a andar
+
+1. Entra a https://www.mercadopago.com.ar/developers/panel/app y crea una aplicacion.
+2. Copia el **Access Token**:
+   - `TEST-...` para probar sin plata real.
+   - El de produccion para cobrar de verdad.
+3. En Vercel: **Settings > Environment Variables**, nombre `MP_ACCESS_TOKEN`.
+4. Redeploy (las variables no se aplican a deploys ya hechos).
+
+Para probar en local, poner el mismo token en `.env` (esta en `.gitignore`, no se sube).
+Con `npm run dev` la funcion tambien se sirve, gracias al plugin `api-en-desarrollo`
+de `vite.config.js`.
+
+### Como esta hecha la seguridad
+
+El navegador manda **solo id, talle, color y cantidad**. El precio lo pone el servidor
+leyendo `src/data/productos.js`. Si alguien edita el pedido en el navegador para pagar
+$1, el backend igual cobra el precio del catalogo. El Access Token nunca sale del
+servidor.
+
+El backend ademas rechaza: productos que no existen, talles que ese modelo no tiene,
+carritos vacios, mas de 30 lineas y mas de 10 unidades por linea.
+
+### Lo que falta para operar en serio
+
+- **Webhook de confirmacion.** Hoy la web muestra "pago aprobado" en base a la vuelta de
+  Mercado Pago. Para registrar la venta del lado del local hay que agregar
+  `api/webhook-mp.js` y guardar los pedidos en algun lado.
+- **Control de stock.** El catalogo no lleva stock, asi que se puede vender un talle que
+  ya no esta. Por ahora hay que revisar cada pedido a mano.
+- **Datos de envio.** Checkout Pro pide nombre, mail y telefono, pero no la direccion de
+  entrega. Hoy se coordina por WhatsApp despues del pago.
+
+---
+
 ## Estructura
 
 ```

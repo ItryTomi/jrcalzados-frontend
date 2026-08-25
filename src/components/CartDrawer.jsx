@@ -1,22 +1,22 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Minus, Plus, ShoppingBag, Trash2, X } from 'lucide-react'
+import { Lock, Minus, Plus, ShoppingBag, Trash2, Truck, X } from 'lucide-react'
 import { useCarrito } from '../context/CartContext'
 import { useBloquearScroll } from '../hooks/useBloquearScroll'
 import { precioARS, CUOTAS } from '../data/productos'
 import { TIENDA, linkWhatsApp } from '../data/tienda'
+import { iniciarPago } from '../services/pago'
 import FotoProducto from './FotoProducto'
 import './CartDrawer.css'
 
 export default function CartDrawer() {
   const { lineas, unidades, subtotal, abierto, cerrar, cambiarCantidad, quitar, vaciar } =
     useCarrito()
+  const [pagando, setPagando] = useState(false)
+  const [errorPago, setErrorPago] = useState(null)
   useBloquearScroll(abierto)
 
   if (!abierto) return null
-
-  const meta = TIENDA.envioGratisDesde || 1
-  const falta = Math.max(0, meta - subtotal)
-  const avance = Math.min(100, (subtotal / meta) * 100)
 
   const mensaje = [
     `Hola ${TIENDA.nombre}! Quiero hacer este pedido:`,
@@ -30,6 +30,18 @@ export default function CartDrawer() {
     '',
     `Total: ${precioARS(subtotal)}`
   ].join('\n')
+
+  const pagar = async () => {
+    setErrorPago(null)
+    setPagando(true)
+    try {
+      const { url } = await iniciarPago(lineas)
+      window.location.href = url
+    } catch (e) {
+      setErrorPago(e.message)
+      setPagando(false)
+    }
+  }
 
   return (
     <div className="carrito" role="dialog" aria-label="Carrito de compras">
@@ -55,24 +67,11 @@ export default function CartDrawer() {
           </div>
         ) : (
           <>
-            {TIENDA.envioGratisActivo ? (
-              <div className="carrito-envio">
-                {falta > 0 ? (
-                  <p>
-                    Te faltan <strong>{precioARS(falta)}</strong> para el envio gratis
-                  </p>
-                ) : (
-                  <p className="listo">Tenes envio gratis!</p>
-                )}
-                <div className="barra">
-                  <span style={{ width: `${avance}%` }} />
-                </div>
-              </div>
-            ) : (
-              <div className="carrito-envio">
-                <p>Coordinamos envio o retiro en el local al confirmar el pedido.</p>
-              </div>
-            )}
+            <div className="carrito-envio">
+              <p className="listo">
+                <Truck size={15} /> Envio gratis a todo el pais
+              </p>
+            </div>
 
             <ul className="carrito-lista">
               {lineas.map((l) => (
@@ -119,20 +118,32 @@ export default function CartDrawer() {
 
             <footer className="carrito-pie">
               <div className="carrito-total">
-                <span>Subtotal</span>
+                <span>Total</span>
                 <strong>{precioARS(subtotal)}</strong>
               </div>
               <p className="carrito-cuotas">
                 Hasta {CUOTAS} cuotas sin interes de {precioARS(Math.round(subtotal / CUOTAS))}
               </p>
+
+              {errorPago && <p className="carrito-error">{errorPago}</p>}
+
+              <button className="btn btn-lima btn-bloque" onClick={pagar} disabled={pagando}>
+                {pagando ? 'Abriendo el pago...' : 'Pagar ahora'}
+              </button>
+
+              <p className="carrito-seguro">
+                <Lock size={13} /> Pago protegido por Mercado Pago. Tarjetas, debito y billetera.
+              </p>
+
               <a
-                className="btn btn-lima btn-bloque"
+                className="btn btn-linea btn-bloque"
                 href={linkWhatsApp(mensaje)}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Finalizar pedido por WhatsApp
+                Prefiero coordinar por WhatsApp
               </a>
+
               <button className="carrito-vaciar" onClick={vaciar}>
                 Vaciar carrito
               </button>

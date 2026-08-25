@@ -1,0 +1,36 @@
+.pago { padding: 70px 20px 90px; display: grid; place-items: center; }
+
+.pago-caja {
+  max-width: 540px;
+  width: 100%;
+  text-align: center;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 44px 28px;
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radio);
+  background: var(--blanco);
+  box-shadow: var(--sombra);
+}
+.pago-caja.ok svg { color: var(--lima-osc); }
+.pago-caja.espera svg { color: #d68b13; }
+.pago-caja.mal svg { color: var(--rojo); }
+
+.pago-caja h1 { font-size: clamp(1.7rem, 5vw, 2.4rem); }
+.pago-caja p { margin: 0; color: var(--gris-txt); line-height: 1.65; max-width: 44ch; }
+.pago-orden {
+  font-size: .82rem;
+  padding: 9px 14px;
+  background: var(--gris-bg);
+  border-radius: var(--radio);
+}
+.pago-orden strong { color: var(--negro); letter-spacing: .04em; }
+
+.pago-botones { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+
+@media (max-width: 560px) {
+  .pago { padding: 44px 16px 60px; }
+  .pago-caja { padding: 32px 20px; }
+  .pago-botones { width: 100%; flex-direction: column; }
+}

@@ -167,3 +167,32 @@
   padding: 4px;
 }
 .carrito-vaciar:hover { color: var(--rojo); }
+
+/* ---- Pago ---- */
+.carrito-envio p.listo {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+}
+.carrito-error {
+  margin: 0;
+  padding: 10px 12px;
+  background: #fdecea;
+  border: 1px solid #f5c2bd;
+  border-radius: var(--radio);
+  color: #8c1d13;
+  font-size: .8rem;
+  line-height: 1.5;
+}
+.carrito-seguro {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: -2px 0 2px;
+  font-size: .72rem;
+  color: var(--gris-txt);
+  text-align: center;
+}
+.carrito-seguro svg { flex-shrink: 0; }
