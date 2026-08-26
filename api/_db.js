@@ -41,7 +41,23 @@ export async function asegurarTablas() {
   await sql`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS envio_estado text NOT NULL DEFAULT 'pendiente'`
   await sql`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS seguimiento text`
   await sql`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS nota_local text`
+  // Bandera para no descontar stock dos veces si MP repite la notificacion.
+  await sql`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS stock_descontado boolean NOT NULL DEFAULT false`
   await sql`CREATE INDEX IF NOT EXISTS pedidos_estado_idx ON pedidos (estado, creado_en DESC)`
+
+  // Stock por variante. Si una variante NO tiene fila, se considera sin
+  // control: se puede vender. Asi el sistema queda inerte hasta que el
+  // local cargue las cantidades desde el panel.
+  await sql`
+    CREATE TABLE IF NOT EXISTS stock (
+      producto_id    text NOT NULL,
+      color          text NOT NULL,
+      talle          integer NOT NULL,
+      cantidad       integer NOT NULL DEFAULT 0,
+      actualizado_en timestamptz NOT NULL DEFAULT now(),
+      PRIMARY KEY (producto_id, color, talle)
+    )
+  `
   tablasListas = true
 }
 
@@ -120,4 +136,75 @@ export async function actualizarEnvio({ orden, envioEstado, seguimiento, notaLoc
     RETURNING *
   `
   return filas[0] || null
+}
+
+
+// ============================================================
+//  STOCK
+// ============================================================
+
+export async function leerStock() {
+  await asegurarTablas()
+  const sql = db()
+  return sql`SELECT producto_id, color, talle, cantidad FROM stock ORDER BY producto_id, color, talle`
+}
+
+// Solo lo agotado: es lo unico que necesita el navegador y evita publicar
+// cuantas unidades hay de cada cosa.
+export async function leerAgotados() {
+  await asegurarTablas()
+  const sql = db()
+  return sql`SELECT producto_id, color, talle FROM stock WHERE cantidad <= 0`
+}
+
+export async function guardarStock(filas) {
+  await asegurarTablas()
+  const sql = db()
+  const consultas = filas.map(
+    (f) => sql`
+      INSERT INTO stock (producto_id, color, talle, cantidad)
+      VALUES (${f.producto_id}, ${f.color}, ${Number(f.talle)}, ${Math.max(0, Number(f.cantidad) || 0)})
+      ON CONFLICT (producto_id, color, talle) DO UPDATE
+        SET cantidad = EXCLUDED.cantidad, actualizado_en = now()
+    `
+  )
+  if (consultas.length) await sql.transaction(consultas)
+  return consultas.length
+}
+
+// Devuelve las lineas que no se pueden cubrir. Las variantes sin fila en
+// la tabla se dan por disponibles.
+export async function faltantesDeStock(items) {
+  await asegurarTablas()
+  const sql = db()
+  const filas = await sql`SELECT producto_id, color, talle, cantidad FROM stock`
+  const mapa = new Map(filas.map((f) => [`${f.producto_id}|${f.color}|${f.talle}`, f.cantidad]))
+
+  const faltan = []
+  for (const i of items) {
+    const clave = `${i.producto_id}|${i.color}|${i.talle}`
+    if (!mapa.has(clave)) continue
+    const hay = mapa.get(clave)
+    if (hay < i.cantidad) faltan.push({ ...i, disponible: hay })
+  }
+  return faltan
+}
+
+// Descuenta una sola vez por pedido, aunque el webhook se repita.
+export async function descontarStock(orden, items) {
+  await asegurarTablas()
+  const sql = db()
+
+  const previo = await sql`SELECT stock_descontado FROM pedidos WHERE orden = ${orden}`
+  if (!previo[0] || previo[0].stock_descontado) return false
+
+  const consultas = items.map(
+    (i) => sql`
+      UPDATE stock SET cantidad = GREATEST(0, cantidad - ${i.cantidad}), actualizado_en = now()
+      WHERE producto_id = ${i.producto_id} AND color = ${i.color} AND talle = ${Number(i.talle)}
+    `
+  )
+  consultas.push(sql`UPDATE pedidos SET stock_descontado = true WHERE orden = ${orden}`)
+  await sql.transaction(consultas)
+  return true
 }

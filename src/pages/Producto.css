@@ -172,3 +172,11 @@
   line-height: 1.5;
 }
 .talles-consultar svg { color: var(--lima-osc); flex-shrink: 0; }
+
+.talles-lista button:disabled {
+  opacity: .38;
+  cursor: not-allowed;
+  text-decoration: line-through;
+  background: var(--gris-bg);
+}
+.talles-lista button:disabled:hover { border-color: var(--gris-borde); }

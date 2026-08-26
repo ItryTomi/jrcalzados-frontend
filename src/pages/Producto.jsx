@@ -11,6 +11,7 @@ import {
 } from '../data/productos'
 import { TIENDA, linkWhatsApp } from '../data/tienda'
 import { useCarrito } from '../context/CartContext'
+import { useAgotados } from '../hooks/useAgotados'
 import FotoProducto from '../components/FotoProducto'
 import ProductCard from '../components/ProductCard'
 import './Producto.css'
@@ -19,6 +20,7 @@ export default function Producto() {
   const { id } = useParams()
   const producto = buscarProducto(id)
   const { agregar } = useCarrito()
+  const { estaAgotado } = useAgotados()
   const [color, setColor] = useState(producto?.colores[0])
   const [talle, setTalle] = useState(null)
   const [aviso, setAviso] = useState(false)
@@ -164,18 +166,23 @@ export default function Producto() {
                   </span>
                 </div>
                 <div className="talles-lista">
-                  {producto.talles.map((t) => (
-                    <button
-                      key={t}
-                      className={t === talle ? 'activo' : ''}
-                      onClick={() => {
-                        setTalle(t)
-                        setAviso(false)
-                      }}
-                    >
-                      {t}
-                    </button>
-                  ))}
+                  {producto.talles.map((t) => {
+                    const agotado = estaAgotado(producto.id, color.nombre, t)
+                    return (
+                      <button
+                        key={t}
+                        className={t === talle ? 'activo' : ''}
+                        disabled={agotado}
+                        title={agotado ? 'Sin stock' : undefined}
+                        onClick={() => {
+                          setTalle(t)
+                          setAviso(false)
+                        }}
+                      >
+                        {t}
+                      </button>
+                    )
+                  })}
                 </div>
                 {aviso && <p className="aviso-talle">Elegi un talle para continuar</p>}
               </div>

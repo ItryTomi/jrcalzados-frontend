@@ -1,7 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { KeyRound, LogOut, MessageCircle, Package, RefreshCw, Truck } from 'lucide-react'
+import {
+  Boxes,
+  KeyRound,
+  ListOrdered,
+  LogOut,
+  MessageCircle,
+  Package,
+  RefreshCw,
+  Truck
+} from 'lucide-react'
 import { precioARS } from '../data/productos'
 import { TIENDA } from '../data/tienda'
+import PanelStock from './PanelStock'
 import './Panel.css'
 
 const CLAVE = 'jr-panel-token'
@@ -47,6 +57,7 @@ export default function Panel() {
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState(null)
   const [abierto, setAbierto] = useState(null)
+  const [vista, setVista] = useState('pedidos')
 
   // El panel no debe indexarse en buscadores.
   useEffect(() => {
@@ -59,7 +70,7 @@ export default function Panel() {
   }, [])
 
   const traer = useCallback(async () => {
-    if (!token) return
+    if (!token || vista !== 'pedidos') return
     setCargando(true)
     setError(null)
     try {
@@ -76,7 +87,7 @@ export default function Panel() {
     } finally {
       setCargando(false)
     }
-  }, [token, filtro])
+  }, [token, filtro, vista])
 
   useEffect(() => {
     traer()
@@ -157,31 +168,52 @@ export default function Panel() {
       <div className="contenedor">
         <header className="panel-top">
           <div>
-            <h1>Pedidos</h1>
-            <p>
-              {totales.cantidad} pagados · {precioARS(totales.plata)} ·{' '}
-              <strong>{totales.porPreparar} por preparar</strong>
-            </p>
+            <div className="panel-tabs">
+              <button
+                className={vista === 'pedidos' ? 'activo' : ''}
+                onClick={() => setVista('pedidos')}
+              >
+                <ListOrdered size={16} /> Pedidos
+              </button>
+              <button
+                className={vista === 'stock' ? 'activo' : ''}
+                onClick={() => setVista('stock')}
+              >
+                <Boxes size={16} /> Stock
+              </button>
+            </div>
+            {vista === 'pedidos' && (
+              <p>
+                {totales.cantidad} pagados · {precioARS(totales.plata)} ·{' '}
+                <strong>{totales.porPreparar} por preparar</strong>
+              </p>
+            )}
           </div>
           <div className="panel-acciones">
-            <select value={filtro} onChange={(e) => setFiltro(e.target.value)}>
-              <option value="pagado">Pagados</option>
-              <option value="pendiente">Pago pendiente</option>
-              <option value="iniciado">Sin pagar</option>
-              <option value="todos">Todos</option>
-            </select>
-            <button className="btn btn-linea" onClick={traer} disabled={cargando}>
-              <RefreshCw size={15} /> {cargando ? 'Actualizando' : 'Actualizar'}
-            </button>
+            {vista === 'pedidos' && (
+              <>
+                <select value={filtro} onChange={(e) => setFiltro(e.target.value)}>
+                  <option value="pagado">Pagados</option>
+                  <option value="pendiente">Pago pendiente</option>
+                  <option value="iniciado">Sin pagar</option>
+                  <option value="todos">Todos</option>
+                </select>
+                <button className="btn btn-linea" onClick={traer} disabled={cargando}>
+                  <RefreshCw size={15} /> {cargando ? 'Actualizando' : 'Actualizar'}
+                </button>
+              </>
+            )}
             <button className="btn btn-negro" onClick={salir}>
               <LogOut size={15} /> Salir
             </button>
           </div>
         </header>
 
-        {error && <p className="panel-error">{error}</p>}
+        {vista === 'stock' && <PanelStock token={token} />}
 
-        {!cargando && pedidos.length === 0 && (
+        {vista === 'pedidos' && error && <p className="panel-error">{error}</p>}
+
+        {vista === 'pedidos' && !cargando && pedidos.length === 0 && (
           <div className="panel-vacio">
             <Package size={44} strokeWidth={1.2} />
             <p>No hay pedidos con ese filtro.</p>
@@ -189,7 +221,7 @@ export default function Panel() {
         )}
 
         <div className="panel-lista">
-          {pedidos.map((p) => {
+          {(vista === 'pedidos' ? pedidos : []).map((p) => {
             const pago = ESTADO_PAGO[p.estado] || { txt: p.estado, tono: 'gris' }
             const comprador = p.comprador || {}
             const entrega = p.entrega || {}

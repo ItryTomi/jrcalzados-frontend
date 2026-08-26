@@ -9,7 +9,7 @@
 // el pedido y pagar $1.
 
 import { PRODUCTOS } from '../src/data/productos.js'
-import { hayBase, guardarPedidoIniciado } from './_db.js'
+import { hayBase, guardarPedidoIniciado, faltantesDeStock } from './_db.js'
 
 const MAX_UNIDADES_POR_LINEA = 10
 const MAX_LINEAS = 30
@@ -102,6 +102,8 @@ export default async function handler(req, res) {
     )
 
     detalle.push({
+      // se usa para descontar stock; MP lo ignora
+      variante: { producto_id: prod.id, color: color.nombre, talle, cantidad },
       id: prod.id,
       title: `${prod.marca} ${prod.nombre}`.slice(0, 250),
       description: `Talle ${talle || 'a confirmar'} - Color ${color.nombre}`,
@@ -113,11 +115,35 @@ export default async function handler(req, res) {
     })
   }
 
+  // Antes de cobrar: revisar que haya stock. Las variantes sin cantidad
+  // cargada se consideran disponibles.
+  if (hayBase()) {
+    try {
+      const faltan = await faltantesDeStock(detalle.map((d) => d.variante))
+      if (faltan.length) {
+        const f = faltan[0]
+        const prod = PRODUCTOS.find((p) => p.id === f.producto_id)
+        return res.status(409).json({
+          error:
+            f.disponible > 0
+              ? `De ${prod?.nombre || 'ese modelo'} talle ${f.talle} nos quedan ${f.disponible}. Ajusta la cantidad.`
+              : `Se agoto ${prod?.nombre || 'ese modelo'} en talle ${f.talle}. Sacalo del carrito para seguir.`,
+          agotado: { id: f.producto_id, color: f.color, talle: f.talle, disponible: f.disponible }
+        })
+      }
+    } catch (e) {
+      // Si falla la consulta de stock no bloqueamos la venta.
+      console.error('No se pudo verificar el stock:', e.message)
+    }
+  }
+
   const orden = `JR-${Date.now().toString(36).toUpperCase()}`
   const total = detalle.reduce((a, i) => a + i.unit_price * i.quantity, 0)
 
+  const itemsMP = detalle.map(({ variante, ...i }) => i)
+
   const preferencia = {
-    items: detalle,
+    items: itemsMP,
     external_reference: orden,
     statement_descriptor: 'JRCALZADOS',
     back_urls: {

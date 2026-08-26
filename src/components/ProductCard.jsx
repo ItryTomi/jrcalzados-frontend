@@ -4,12 +4,18 @@ import { MessageCircle } from 'lucide-react'
 import { descuento, precioARS, CUOTAS } from '../data/productos'
 import { TIENDA, linkWhatsApp } from '../data/tienda'
 import { useCarrito } from '../context/CartContext'
+import { useAgotados } from '../hooks/useAgotados'
 import FotoProducto from './FotoProducto'
 import './ProductCard.css'
 
 export default function ProductCard({ producto }) {
   const [color, setColor] = useState(producto.colores[0])
   const { agregar } = useCarrito()
+  const { estaAgotado } = useAgotados()
+  const sinStock =
+    !producto.consultarTalle &&
+    producto.talles.length > 0 &&
+    producto.talles.every((t) => estaAgotado(producto.id, color.nombre, t))
   const off = descuento(producto)
   const cuota = Math.round(producto.precio / CUOTAS)
 
@@ -31,7 +37,8 @@ export default function ProductCard({ producto }) {
 
         <div className="tarjeta-etiquetas">
           {off > 0 && <span className="et et-off">{off}% OFF</span>}
-          {producto.nuevo && <span className="et et-nuevo">Nuevo</span>}
+          {producto.nuevo && !sinStock && <span className="et et-nuevo">Nuevo</span>}
+          {sinStock && <span className="et et-agotado">Sin stock</span>}
         </div>
 
         {producto.consultarTalle ? (
@@ -47,16 +54,21 @@ export default function ProductCard({ producto }) {
           <div className="tarjeta-rapida">
             <span>Agregar talle</span>
             <div className="tarjeta-talles">
-              {producto.talles.map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => agregar(producto, t, color.nombre, 1)}
-                  aria-label={`Agregar talle ${t} al carrito`}
-                >
-                  {t}
-                </button>
-              ))}
+              {producto.talles.map((t) => {
+                const agotado = estaAgotado(producto.id, color.nombre, t)
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    disabled={agotado}
+                    title={agotado ? 'Sin stock' : undefined}
+                    onClick={() => agregar(producto, t, color.nombre, 1)}
+                    aria-label={`Agregar talle ${t} al carrito`}
+                  >
+                    {t}
+                  </button>
+                )
+              })}
             </div>
           </div>
         )}

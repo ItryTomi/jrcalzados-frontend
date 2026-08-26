@@ -224,12 +224,38 @@ Paginas en `/legales/terminos`, `/legales/cambios`, `/legales/privacidad` y
 `src/data/legales.js` y hay dos datos por completar antes de publicar:
 `RAZON_SOCIAL` y `CUIT`. Tienen que pasar por el contador o el abogado de JR.
 
+### Control de stock
+
+Se maneja desde la pestana **Stock** del panel, por variante
+(producto + color + talle).
+
+La regla clave: **una variante sin cantidad cargada se considera sin control y se
+puede vender sin limite.** Asi el sistema queda inerte hasta que el local cargue
+las cantidades, en vez de dejar todo el catalogo como agotado el primer dia.
+Poner **0** marca la variante como agotada.
+
+Que pasa cuando hay stock cargado:
+
+- En el catalogo y en la ficha, los talles agotados aparecen tachados y no se
+  pueden elegir. Si se agotan todos los talles de un color, la tarjeta muestra
+  "Sin stock".
+- Antes de mandar a pagar, `crear-preferencia` vuelve a chequear contra la base y
+  devuelve 409 si algo se agoto mientras el comprador completaba sus datos.
+- Al confirmarse el pago, el webhook descuenta las unidades. Se descuenta **una
+  sola vez por pedido**, aunque Mercado Pago repita la notificacion (bandera
+  `stock_descontado`).
+
+Si la consulta de stock falla, la venta **no** se bloquea: se prefiere vender y
+avisar despues antes que perder la compra por un problema de base.
+
+Los 7 productos con talles "a consultar" no aparecen en la pestana: no hay
+variantes sobre las que llevar cuenta hasta que se carguen los rangos.
+
 ### Lo que todavia falta
 
-- **Control de stock.** El catalogo no lleva stock, asi que se puede vender un talle
-  que ya no esta. Hay que revisar cada pedido a mano.
 - **Carga de productos.** Hoy el catalogo esta en un archivo de codigo: cada alta
-  hay que hacerla en `src/data/productos.js` y publicar.
+  hay que hacerla en `src/data/productos.js` y publicar. El panel solo maneja
+  cantidades, no da de alta modelos nuevos.
 
 ### Nota de desarrollo
 

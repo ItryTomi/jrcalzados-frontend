@@ -8,7 +8,7 @@
 // varias veces por el mismo pago: por eso todo es idempotente.
 
 import crypto from 'node:crypto'
-import { hayBase, actualizarEstadoPedido } from './_db.js'
+import { hayBase, actualizarEstadoPedido, descontarStock } from './_db.js'
 import { avisarVenta } from './_aviso.js'
 
 const ESTADOS = {
@@ -126,9 +126,19 @@ export default async function handler(req, res) {
       comprador
     })
 
-    // Avisa una sola vez, aunque MP repita la notificacion.
-    if (estado === 'pagado' && estadoPrevio !== 'pagado') {
-      await avisarVenta(pedido)
+    if (estado === 'pagado') {
+      // Descuenta stock una sola vez por pedido (la propia funcion lo
+      // controla con la bandera stock_descontado).
+      try {
+        const items = Array.isArray(pedido.items) ? pedido.items : []
+        const variantes = items.map((i) => i.variante).filter(Boolean)
+        if (variantes.length) await descontarStock(orden, variantes)
+      } catch (e) {
+        console.error('[webhook] No se pudo descontar el stock:', e.message)
+      }
+
+      // Avisa una sola vez, aunque MP repita la notificacion.
+      if (estadoPrevio !== 'pagado') await avisarVenta(pedido)
     }
 
     return res.status(200).json({ ok: true, orden, estado })

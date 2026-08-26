@@ -208,3 +208,15 @@
   padding: 14px 10px;
 }
 .tarjeta-consulta:hover { background: rgba(13, 13, 13, .98); color: var(--lima); }
+
+.et-agotado { background: var(--gris-txt); color: #fff; }
+.tarjeta-talles button:disabled {
+  opacity: .3;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+.tarjeta-talles button:disabled:hover {
+  background: transparent;
+  border-color: rgba(255, 255, 255, .35);
+  color: var(--blanco);
+}
