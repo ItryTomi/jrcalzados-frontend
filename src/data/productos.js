@@ -14,7 +14,9 @@
 // y la web calcula sola el % OFF y lo suma a la seccion Ofertas.
 // ============================================================
 
-import { TIENDA } from './tienda'
+// La extension .js es obligatoria: este archivo tambien lo importan las
+// funciones de /api, donde corre Node en modo ESM y no resuelve sin extension.
+import { TIENDA } from './tienda.js'
 
 export const CATEGORIAS = [
   { slug: 'hombre', nombre: 'Hombre' },
