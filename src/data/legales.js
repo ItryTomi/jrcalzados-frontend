@@ -7,7 +7,7 @@
 // y hay que completar los datos marcados con [COMPLETAR].
 // ============================================================
 
-import { TIENDA } from './tienda'
+import { TIENDA } from './tienda.js'
 
 export const RAZON_SOCIAL = '[COMPLETAR razon social]'
 export const CUIT = '[COMPLETAR CUIT]'
