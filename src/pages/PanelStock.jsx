@@ -1,17 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Check, Loader2, PackageSearch } from 'lucide-react'
-import { PRODUCTOS } from '../data/productos'
+import { useCatalogo } from '../context/CatalogoContext'
 import { limpiarCacheAgotados } from '../hooks/useAgotados'
 import './PanelStock.css'
-
-// Los productos con talle "a consultar" no entran: no hay variantes sobre
-// las que llevar cuenta hasta que el local cargue los rangos.
-const CONTROLABLES = PRODUCTOS.filter((p) => !p.consultarTalle && p.talles.length > 0)
 
 const clave = (id, color, talle) => `${id}|${color}|${talle}`
 
 export default function PanelStock({ token }) {
-  const [elegido, setElegido] = useState(CONTROLABLES[0]?.id || null)
+  const { productos } = useCatalogo()
+  // Los productos con talle "a consultar" no entran: no hay variantes sobre
+  // las que llevar cuenta hasta que el local cargue los rangos.
+  const CONTROLABLES = useMemo(
+    () => productos.filter((p) => !p.consultarTalle && p.talles.length > 0),
+    [productos]
+  )
+  const [elegido, setElegido] = useState(null)
   const [valores, setValores] = useState({})
   const [sucios, setSucios] = useState({})
   const [cargando, setCargando] = useState(false)
@@ -43,7 +46,14 @@ export default function PanelStock({ token }) {
     traer()
   }, [traer])
 
-  const producto = useMemo(() => CONTROLABLES.find((p) => p.id === elegido), [elegido])
+  useEffect(() => {
+    if (!elegido && CONTROLABLES.length) setElegido(CONTROLABLES[0].id)
+  }, [elegido, CONTROLABLES])
+
+  const producto = useMemo(
+    () => CONTROLABLES.find((p) => p.id === elegido),
+    [CONTROLABLES, elegido]
+  )
 
   const cambiar = (id, color, talle, valor) => {
     const k = clave(id, color, talle)

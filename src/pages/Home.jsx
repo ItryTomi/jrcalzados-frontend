@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, MapPin } from 'lucide-react'
-import { PRODUCTOS, MARCAS, precioARS } from '../data/productos'
+import { precioARS } from '../data/productos'
+import { useCatalogo } from '../context/CatalogoContext'
 import { TIENDA, linkWhatsApp } from '../data/tienda'
 import ProductCard from '../components/ProductCard'
 import './Home.css'
@@ -61,6 +62,7 @@ const VITRINAS = [
 ]
 
 export default function Home() {
+  const { productos: PRODUCTOS, marcas: MARCAS } = useCatalogo()
   const [slide, setSlide] = useState(0)
 
   useEffect(() => {

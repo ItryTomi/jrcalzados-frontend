@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Clock, Mail, MapPin, Phone } from 'lucide-react'
 import { Instagram } from './IconosSociales'
-import { MARCAS } from '../data/productos'
 import { LINK_DEFENSA_CONSUMIDOR, RAZON_SOCIAL, CUIT } from '../data/legales'
 import { TIENDA } from '../data/tienda'
 import Logo from './Logo'

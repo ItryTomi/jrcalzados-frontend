@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Menu, Search, ShoppingBag, X, MapPin, Phone } from 'lucide-react'
 import { useCarrito } from '../context/CartContext'
-import { MARCAS, TIPOS } from '../data/productos'
+import { useCatalogo } from '../context/CatalogoContext'
 import { TIENDA } from '../data/tienda'
 import Logo from './Logo'
 import './Header.css'
@@ -17,6 +17,7 @@ const AVISOS = [
 
 export default function Header() {
   const { unidades, abrir } = useCarrito()
+  const { marcas, tipos } = useCatalogo()
   const [menuAbierto, setMenuAbierto] = useState(false)
   const [aviso, setAviso] = useState(0)
   const [busqueda, setBusqueda] = useState('')
@@ -93,7 +94,7 @@ export default function Header() {
           <div className="nav-desplegable">
             <button type="button">Marcas</button>
             <div className="panel">
-              {MARCAS.map((m) => (
+              {marcas.map((m) => (
                 <Link key={m} to={`/catalogo?marca=${encodeURIComponent(m)}`}>
                   {m}
                 </Link>
@@ -104,7 +105,7 @@ export default function Header() {
           <div className="nav-desplegable">
             <button type="button">Tipo</button>
             <div className="panel">
-              {TIPOS.map((t) => (
+              {tipos.map((t) => (
                 <Link key={t} to={`/catalogo?tipo=${encodeURIComponent(t)}`}>
                   {t}
                 </Link>

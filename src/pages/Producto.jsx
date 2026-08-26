@@ -1,14 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ChevronRight, CreditCard, MapPin, RefreshCw, Ruler, Truck } from 'lucide-react'
-import {
-  buscarProducto,
-  PRODUCTOS,
-  descuento,
-  precioARS,
-  rangoTalles,
-  CUOTAS
-} from '../data/productos'
+import { descuento, precioARS, rangoTalles, CUOTAS } from '../data/productos'
+import { useCatalogo } from '../context/CatalogoContext'
 import { TIENDA, linkWhatsApp } from '../data/tienda'
 import { useCarrito } from '../context/CartContext'
 import { useAgotados } from '../hooks/useAgotados'
@@ -18,7 +12,8 @@ import './Producto.css'
 
 export default function Producto() {
   const { id } = useParams()
-  const producto = buscarProducto(id)
+  const { productos: PRODUCTOS, buscar } = useCatalogo()
+  const producto = buscar(id)
   const { agregar } = useCarrito()
   const { estaAgotado } = useAgotados()
   const [color, setColor] = useState(producto?.colores[0])

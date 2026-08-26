@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Boxes,
+  DollarSign,
   KeyRound,
   ListOrdered,
   LogOut,
@@ -12,6 +13,7 @@ import {
 import { precioARS } from '../data/productos'
 import { TIENDA } from '../data/tienda'
 import PanelStock from './PanelStock'
+import PanelPrecios from './PanelPrecios'
 import './Panel.css'
 
 const CLAVE = 'jr-panel-token'
@@ -181,6 +183,12 @@ export default function Panel() {
               >
                 <Boxes size={16} /> Stock
               </button>
+              <button
+                className={vista === 'precios' ? 'activo' : ''}
+                onClick={() => setVista('precios')}
+              >
+                <DollarSign size={16} /> Precios
+              </button>
             </div>
             {vista === 'pedidos' && (
               <p>
@@ -210,6 +218,7 @@ export default function Panel() {
         </header>
 
         {vista === 'stock' && <PanelStock token={token} />}
+        {vista === 'precios' && <PanelPrecios token={token} />}
 
         {vista === 'pedidos' && error && <p className="panel-error">{error}</p>}
 

@@ -1,0 +1,105 @@
+.precios { display: grid; grid-template-columns: 320px 1fr; gap: 22px; align-items: start; }
+
+/* ---- Formulario ---- */
+.precios-form {
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radio);
+  padding: 22px;
+}
+.precios-form h2 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 1.35rem;
+  margin-bottom: 8px;
+}
+.precios-form h2 svg { color: var(--lima-osc); }
+.precios-ayuda { margin: 0 0 18px; font-size: .82rem; color: var(--gris-txt); line-height: 1.55; }
+.precios-form form { display: flex; flex-direction: column; gap: 13px; }
+
+.campo-porcentaje { position: relative; display: flex; align-items: center; }
+.campo-porcentaje input { width: 100%; padding-right: 34px !important; }
+.campo-porcentaje span {
+  position: absolute;
+  right: 13px;
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--gris-txt);
+}
+
+.precios-ok {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 14px 0 0;
+  font-size: .84rem;
+  font-weight: 600;
+  color: var(--lima-osc);
+}
+
+/* ---- Tabla ---- */
+.precios-tabla-cont {
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radio);
+  overflow: hidden;
+}
+.precios-resumen {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 16px 18px;
+  background: var(--gris-bg);
+  border-bottom: 1px solid var(--gris-borde);
+}
+.precios-resumen h3 { font-size: 1.2rem; }
+.precios-resumen p { margin: 4px 0 0; font-size: .85rem; color: var(--gris-txt); }
+.precios-resumen strong { color: var(--negro); font-size: 1rem; }
+.precios-confirmar { display: flex; gap: 8px; flex-wrap: wrap; }
+.precios-confirmar .btn { padding: 10px 18px; font-size: .74rem; }
+
+.precios-tabla { width: 100%; border-collapse: collapse; }
+.precios-tabla thead th {
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--gris-txt);
+  text-align: left;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--gris-borde);
+}
+.precios-tabla thead th:not(:first-child) { text-align: right; width: 140px; }
+.precios-tabla td {
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--gris-borde);
+  font-size: .86rem;
+}
+.precios-tabla tr:last-child td { border-bottom: 0; }
+.precios-tabla td:not(:first-child) { text-align: right; }
+.precios-marca {
+  display: block;
+  font-size: .64rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--gris-txt);
+}
+.precios-tabla .viejo { color: var(--gris-txt); text-decoration: line-through; }
+.precios-tabla .nuevo { font-weight: 700; color: var(--lima-osc); }
+.precios-tabla input {
+  width: 118px;
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radio);
+  padding: 8px 10px;
+  text-align: right;
+  font-family: inherit;
+  font-size: .86rem;
+  outline: none;
+}
+.precios-tabla input:focus { border-color: var(--negro); }
+
+@media (max-width: 900px) {
+  .precios { grid-template-columns: 1fr; }
+}

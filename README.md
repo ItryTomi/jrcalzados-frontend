@@ -251,11 +251,36 @@ avisar despues antes que perder la compra por un problema de base.
 Los 7 productos con talles "a consultar" no aparecen en la pestana: no hay
 variantes sobre las que llevar cuenta hasta que se carguen los rangos.
 
+### Catalogo en la base
+
+El catalogo vive en la tabla `productos` de Neon. `src/data/productos.js` quedo
+como **semilla**: si la tabla esta vacia se carga desde ahi una sola vez y de ahi
+en mas manda la base.
+
+En el navegador, `CatalogoContext` arranca con el catalogo del archivo (la pagina
+pinta completa desde el primer momento, sin pantalla en blanco) y lo reemplaza
+cuando llega el de la base. Si no hay base configurada, el del archivo queda y la
+web funciona igual.
+
+**El precio con el que se cobra tambien sale de la base**: `crear-preferencia` lee
+el catalogo del servidor antes de armar el cobro. Sin eso, editar un precio en el
+panel no habria cambiado lo que efectivamente se cobra.
+
+### Precios
+
+Pestana **Precios** del panel. Dos formas de trabajar:
+
+- **Aumento masivo**: porcentaje, opcionalmente filtrado por marca o tipo, con
+  redondeo (al peso, a los $100, a los $1.000, o terminado en 900). Nunca se
+  aplica directo: primero se calcula y se muestra la lista de antes y despues,
+  y recien se escribe al confirmar.
+- **Precio suelto**: editar el numero de un producto y salir del casillero.
+
 ### Lo que todavia falta
 
-- **Carga de productos.** Hoy el catalogo esta en un archivo de codigo: cada alta
-  hay que hacerla en `src/data/productos.js` y publicar. El panel solo maneja
-  cantidades, no da de alta modelos nuevos.
+- **Alta de productos con fotos.** El panel maneja precios y stock, pero cargar un
+  modelo nuevo sigue siendo editar `src/data/productos.js`. Para eso hacen falta
+  las fotos en Cloudinary (ver `.env.example`) y una pestana Productos.
 
 ### Nota de desarrollo
 

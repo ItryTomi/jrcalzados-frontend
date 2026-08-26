@@ -10,6 +10,7 @@
 
 import { PRODUCTOS } from '../src/data/productos.js'
 import { hayBase, guardarPedidoIniciado, faltantesDeStock } from './_db.js'
+import { leerCatalogo } from './_catalogo.js'
 
 const MAX_UNIDADES_POR_LINEA = 10
 const MAX_LINEAS = 30
@@ -83,8 +84,20 @@ export default async function handler(req, res) {
   const base = urlBase(req)
   const detalle = []
 
+  // El precio sale del catalogo del SERVIDOR. Con base configurada manda la
+  // base (que es la que edita el local); si no, el archivo del repo.
+  let catalogo = PRODUCTOS
+  if (hayBase()) {
+    try {
+      const deLaBase = await leerCatalogo()
+      if (deLaBase.length) catalogo = deLaBase
+    } catch (e) {
+      console.error('No se pudo leer el catalogo de la base, uso el del archivo:', e.message)
+    }
+  }
+
   for (const linea of items) {
-    const prod = PRODUCTOS.find((p) => p.id === linea.id)
+    const prod = catalogo.find((p) => p.id === linea.id)
     if (!prod) {
       return res.status(400).json({ error: 'Hay un producto que ya no esta disponible' })
     }
@@ -122,7 +135,7 @@ export default async function handler(req, res) {
       const faltan = await faltantesDeStock(detalle.map((d) => d.variante))
       if (faltan.length) {
         const f = faltan[0]
-        const prod = PRODUCTOS.find((p) => p.id === f.producto_id)
+        const prod = catalogo.find((p) => p.id === f.producto_id)
         return res.status(409).json({
           error:
             f.disponible > 0

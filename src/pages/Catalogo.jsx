@@ -1,15 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { ChevronRight, SlidersHorizontal, X } from 'lucide-react'
-import {
-  PRODUCTOS,
-  MARCAS,
-  TIPOS,
-  USOS,
-  TODOS_TALLES,
-  COLORES,
-  descuento
-} from '../data/productos'
+import { descuento } from '../data/productos'
+import { useCatalogo } from '../context/CatalogoContext'
 import ProductCard from '../components/ProductCard'
 import { useBloquearScroll } from '../hooks/useBloquearScroll'
 import './Catalogo.css'
@@ -34,6 +27,14 @@ const alternar = (lista, valor) =>
 
 export default function Catalogo() {
   const { categoria } = useParams()
+  const {
+    productos: PRODUCTOS,
+    marcas: MARCAS,
+    tipos: TIPOS,
+    usos: USOS,
+    talles: TODOS_TALLES,
+    colores: COLORES
+  } = useCatalogo()
   const [params, setParams] = useSearchParams()
   const q = (params.get('q') || '').toLowerCase().trim()
 
@@ -88,7 +89,7 @@ export default function Catalogo() {
     if (orden === 'mayor') copia.sort((a, b) => b.precio - a.precio)
     if (orden === 'nombre') copia.sort((a, b) => a.nombre.localeCompare(b.nombre))
     return copia
-  }, [categoria, q, marcas, tipos, usos, talles, colores, orden])
+  }, [PRODUCTOS, categoria, q, marcas, tipos, usos, talles, colores, orden])
 
   const limpiar = () => {
     setMarcas([])
