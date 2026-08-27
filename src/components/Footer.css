@@ -29,7 +29,7 @@
 
 .pie-marca p { margin: 0; font-size: .86rem; line-height: 1.7; max-width: 42ch; }
 .pie-logo { display: flex; }
-.pie-logo .marca { height: 92px; width: 92px; }
+.pie-logo .marca { width: 88px; height: 88px; }
 
 .pie-redes { display: flex; gap: 10px; margin-top: 4px; }
 .pie-redes a {

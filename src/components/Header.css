@@ -27,12 +27,14 @@
 }
 
 /* ---- Barra principal ---- */
-.barra-principal-int {
+.barra-principal .barra-principal-int {
   display: flex;
   align-items: center;
   gap: 26px;
-  padding-top: 12px;
-  padding-bottom: 12px;
+  /* Con la especificidad de una sola clase, .contenedor { padding: 0 20px }
+     ganaba por orden de carga y la fila quedaba de la altura exacta del
+     logo, que asi tocaba las barras de arriba y de abajo. */
+  padding: 16px 20px;
 }
 
 .boton-menu {
@@ -319,11 +321,10 @@
 @media (max-width: 820px) {
   .boton-menu { display: grid; place-items: center; }
   .barra-nav { display: none; }
-  .barra-principal-int {
+  .barra-principal .barra-principal-int {
     gap: 10px;
     flex-wrap: wrap;
-    padding-top: 9px;
-    padding-bottom: 9px;
+    padding: 10px 20px;
   }
   .barra-principal-int .buscador { order: 3; flex-basis: 100%; max-width: none; }
   .barra-principal-int .buscador input { padding: 9px 12px; font-size: .82rem; }
