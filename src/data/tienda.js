@@ -4,13 +4,24 @@ export const TIENDA = {
   ciudad: 'San Francisco',
   provincia: 'Cordoba',
 
-  // TODO cliente: completar con los datos reales
+  // TODO: falta la calle y la altura del local.
   direccion: 'San Francisco, Cordoba',
-  horarios: 'Lunes a viernes 9 a 13 y 16.30 a 20.30 hs | Sabados 9 a 13 hs',
-  // Formato internacional sin + ni espacios (ej: 5493564123456)
-  whatsapp: '5493564000000',
-  whatsappVisible: '+54 9 3564 00-0000',
-  email: 'ventas@jrcalzados.com.ar',
+  horarios: 'Lunes a viernes de 9 a 16 hs',
+
+  // Numero al que van todos los botones de WhatsApp de la tienda.
+  // Formato internacional sin + ni espacios.
+  // OJO: hay que confirmar que la linea de Ventas tenga WhatsApp. Si es
+  // un fijo, todos los botones del sitio no llegan a ningun lado.
+  whatsapp: '5493564607522',
+  whatsappVisible: '3564 60-7522',
+
+  telefonos: [
+    { rol: 'Ventas', numero: '3564 60-7522', linea: '5493564607522' },
+    { rol: 'Indumentaria', numero: '3564 67-3810', linea: '5493564673810' },
+    { rol: 'Administracion', numero: '3564 61-2460', linea: '5493564612460' }
+  ],
+
+  email: 'jrcalzados.sanfco@gmail.com',
   instagram: 'jrcalzados',
 
   // Cuotas sin interes que ofrece el local.
@@ -21,5 +32,5 @@ export const TIENDA = {
   envioGratisDesde: 0
 }
 
-export const linkWhatsApp = (texto) =>
-  `https://wa.me/${TIENDA.whatsapp}?text=${encodeURIComponent(texto)}`
+export const linkWhatsApp = (texto, linea = TIENDA.whatsapp) =>
+  `https://wa.me/${linea}?text=${encodeURIComponent(texto)}`

@@ -61,9 +61,15 @@ export default function Footer() {
           <p className="pie-dato">
             <Clock size={15} /> {TIENDA.horarios}
           </p>
-          <p className="pie-dato">
-            <Phone size={15} /> {TIENDA.whatsappVisible}
-          </p>
+          {TIENDA.telefonos.map((t) => (
+            <p className="pie-dato" key={t.rol}>
+              <Phone size={15} />
+              <span>
+                <strong className="pie-rol">{t.rol}</strong>
+                <a href={`tel:+54${t.numero.replace(/\D/g, '')}`}>{t.numero}</a>
+              </span>
+            </p>
+          ))}
           <p className="pie-dato">
             <Mail size={15} /> {TIENDA.email}
           </p>

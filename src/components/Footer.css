@@ -79,3 +79,12 @@
 .pie-arrepentimiento { color: var(--lima) !important; font-weight: 600; }
 .pie-legal-int a { color: var(--lima); text-decoration: underline; }
 .pie-legal-int span { line-height: 1.7; }
+
+.pie-dato > span { display: flex; flex-direction: column; gap: 1px; }
+.pie-rol {
+  font-size: .64rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, .5);
+}

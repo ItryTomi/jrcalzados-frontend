@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Clock, Mail, MapPin, Phone } from 'lucide-react'
+import { Clock, Mail, MapPin, MessageCircle, Phone } from 'lucide-react'
 import { Instagram } from '../components/IconosSociales'
 import { TIENDA, linkWhatsApp } from '../data/tienda'
 import './Contacto.css'
@@ -49,12 +49,25 @@ export default function Contacto() {
                 <span>{TIENDA.horarios}</span>
               </div>
             </li>
+            {TIENDA.telefonos.map((t) => (
+              <li key={t.rol}>
+                <Phone size={18} />
+                <div>
+                  <strong>{t.rol}</strong>
+                  <a href={`tel:+54${t.numero.replace(/\D/g, '')}`}>{t.numero}</a>
+                </div>
+              </li>
+            ))}
             <li>
-              <Phone size={18} />
+              <MessageCircle size={18} />
               <div>
                 <strong>WhatsApp</strong>
-                <a href={linkWhatsApp('Hola! Queria hacer una consulta.')} target="_blank" rel="noopener noreferrer">
-                  {TIENDA.whatsappVisible}
+                <a
+                  href={linkWhatsApp('Hola! Queria hacer una consulta.')}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Escribirnos por WhatsApp
                 </a>
               </div>
             </li>

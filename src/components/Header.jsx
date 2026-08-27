@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { Menu, Search, ShoppingBag, X, MapPin, Phone } from 'lucide-react'
+import { Menu, Search, ShoppingBag, X, MapPin } from 'lucide-react'
 import { useCarrito } from '../context/CartContext'
 import { useCatalogo } from '../context/CatalogoContext'
 import { TIENDA } from '../data/tienda'
@@ -70,14 +70,6 @@ export default function Header() {
           </form>
 
           <div className="acciones">
-            <a
-              className="accion-texto"
-              href={`tel:${TIENDA.whatsapp}`}
-              aria-label="Telefono del local"
-            >
-              <Phone size={18} />
-              <span>{TIENDA.whatsappVisible}</span>
-            </a>
             <BotonCuenta />
             <button className="accion-carrito" onClick={abrir} aria-label="Abrir carrito">
               <ShoppingBag size={22} />
