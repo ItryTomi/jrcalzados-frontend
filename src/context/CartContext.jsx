@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, useState } from 'react'
 
+import { precioDe } from '../data/productos'
+
 const CartContext = createContext(null)
 const CLAVE = 'jr-carrito'
 
@@ -24,7 +26,8 @@ function reducer(estado, accion) {
           id: producto.id,
           nombre: producto.nombre,
           marca: producto.marca,
-          precio: producto.precio,
+          // El precio del color elegido, no el del producto: pueden diferir.
+          precio: precioDe(producto, variante),
           imagen: variante?.imagen || null,
           colorHex: variante?.hex || '#141414',
           talle,

@@ -339,6 +339,47 @@ export const rangoTalles = (prod) => {
   return `Talles ${prod.talles[0]} al ${prod.talles[prod.talles.length - 1]}`
 }
 
+// ---------- Precio y descripcion por color ----------
+//
+// Un color puede pisar el precio y la descripcion del producto: la misma
+// zapatilla en blanco puede costar mas que en negro. Si el color no trae
+// nada propio, manda lo del producto.
+//
+// Estas funciones son la UNICA fuente de verdad del precio. Las usa el
+// navegador para mostrar y el servidor para cobrar, asi que si cambian,
+// cambian las dos puntas juntas y no se pueden desincronizar.
+
+export const colorDe = (prod, color) => {
+  const lista = prod?.colores || []
+  if (!lista.length) return null
+  if (!color) return lista[0]
+  if (typeof color === 'string') return lista.find((c) => c.nombre === color) || lista[0]
+  return color
+}
+
+// Un precio por color solo cuenta si es un numero mayor a cero. Un campo
+// vacio, un null o un texto raro caen al precio del producto.
+const precioPropio = (c) => {
+  const n = Number(c?.precio)
+  return Number.isFinite(n) && n > 0 ? n : null
+}
+
+export const precioDe = (prod, color) => precioPropio(colorDe(prod, color)) ?? prod.precio
+
+export const descripcionDe = (prod, color) =>
+  (colorDe(prod, color)?.descripcion || '').trim() || (prod.descripcion || '').trim()
+
+// Para las tarjetas del catalogo: si los colores no valen lo mismo hay que
+// mostrar "desde $X", porque sino el precio cambia al abrir el producto y
+// eso se lee como un engano.
+export const rangoPrecios = (prod) => {
+  const precios = (prod.colores || []).map((c) => precioPropio(c) ?? prod.precio)
+  if (!precios.length) return { min: prod.precio, max: prod.precio, varia: false }
+  const min = Math.min(...precios)
+  const max = Math.max(...precios)
+  return { min, max, varia: min !== max }
+}
+
 export const CUOTAS = TIENDA.cuotasSinInteres
 
 export const buscarProducto = (id) => PRODUCTOS.find((x) => x.id === id)

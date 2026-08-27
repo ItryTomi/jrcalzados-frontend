@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MessageCircle } from 'lucide-react'
-import { descuento, precioARS, CUOTAS } from '../data/productos'
+import { descuento, precioARS, rangoPrecios, CUOTAS } from '../data/productos'
 import { TIENDA, linkWhatsApp } from '../data/tienda'
 import { useCarrito } from '../context/CartContext'
 import { useAgotados } from '../hooks/useAgotados'
@@ -25,7 +25,11 @@ export default function ProductCard({ producto }) {
   const totalRestante = todosConocidos ? conteos.reduce((a, c) => a + c, 0) : null
   const ultimas = !sinStock && totalRestante !== null && totalRestante <= 3
   const off = descuento(producto)
-  const cuota = Math.round(producto.precio / CUOTAS)
+  // Si los colores no valen lo mismo, la tarjeta muestra el mas barato con
+  // un "desde". Sin eso el precio cambiaria al abrir el producto y parece
+  // que le cambiaron el precio en la cara al cliente.
+  const { min, varia } = rangoPrecios(producto)
+  const cuota = Math.round(min / CUOTAS)
 
   const consulta = linkWhatsApp(
     `Hola ${TIENDA.nombre}! Queria consultar talles de: ${producto.marca} ${producto.nombre} (${color.nombre})`
@@ -97,7 +101,10 @@ export default function ProductCard({ producto }) {
           {producto.precioAnterior && (
             <span className="precio-viejo">{precioARS(producto.precioAnterior)}</span>
           )}
-          <span className="precio">{precioARS(producto.precio)}</span>
+          <span className="precio">
+            {varia && <small className="precio-desde">desde </small>}
+            {precioARS(min)}
+          </span>
         </div>
 
         <p className="tarjeta-cuotas">

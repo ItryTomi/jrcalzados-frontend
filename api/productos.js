@@ -70,15 +70,51 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'El precio tiene que ser mayor a cero' })
     }
 
-    const colores = (Array.isArray(producto.colores) ? producto.colores : [])
-      .filter((c) => c && texto(c.nombre))
-      .slice(0, 8)
-      .map((c) => ({
+    // OJO: antes aca habia un .filter() que descartaba los colores sin nombre
+    // sin decir nada. El local cargaba la foto, guardaba, le salia "listo" y
+    // el color desaparecia. Ahora es un error explicito.
+    const crudos = (Array.isArray(producto.colores) ? producto.colores : []).slice(0, 8)
+    if (!crudos.length) return res.status(400).json({ error: 'Cargá al menos un color' })
+
+    const sinNombre = crudos.findIndex((c) => !c || !texto(c.nombre))
+    if (sinNombre !== -1) {
+      return res.status(400).json({
+        error: `Falta el nombre del color ${sinNombre + 1}. Escribilo y volvé a guardar.`,
+        colorSinNombre: sinNombre
+      })
+    }
+
+    const colores = []
+    for (const [i, c] of crudos.entries()) {
+      // El precio por color es opcional: vacio significa "vale lo mismo que
+      // el producto". Pero si escribieron algo, tiene que ser un numero.
+      let precioColor = null
+      const bruto = c.precio
+      if (bruto !== null && bruto !== undefined && String(bruto).trim() !== '') {
+        const n = Number(bruto)
+        if (!Number.isFinite(n) || n <= 0) {
+          return res.status(400).json({
+            error: `El precio del color ${i + 1} (${texto(c.nombre, 40)}) tiene que ser un número mayor a cero, o dejalo vacío para que valga igual que el producto.`,
+            colorSinNombre: i
+          })
+        }
+        precioColor = n
+      }
+
+      colores.push({
         nombre: texto(c.nombre, 40),
         hex: /^#[0-9a-f]{6}$/i.test(c.hex || '') ? c.hex : '#141414',
-        imagen: texto(c.imagen, 400) || null
-      }))
-    if (!colores.length) return res.status(400).json({ error: 'Cargá al menos un color' })
+        imagen: texto(c.imagen, 400) || null,
+        precio: precioColor,
+        descripcion: texto(c.descripcion, 400) || ''
+      })
+    }
+
+    const nombres = colores.map((c) => c.nombre.toLowerCase())
+    const repetido = nombres.find((n, i) => nombres.indexOf(n) !== i)
+    if (repetido) {
+      return res.status(400).json({ error: `Hay dos colores llamados "${repetido}". Ponele nombres distintos.` })
+    }
 
     const consultarTalle = Boolean(producto.consultarTalle)
     const talles = consultarTalle
@@ -107,6 +143,7 @@ export default async function handler(req, res) {
         : 'unisex',
       tipo: texto(producto.tipo, 30) || 'Zapatillas',
       uso: texto(producto.uso, 30) || 'Urbano',
+      descripcion: texto(producto.descripcion, 1500),
       precio,
       precioAnterior:
         producto.precioAnterior === '' || producto.precioAnterior == null

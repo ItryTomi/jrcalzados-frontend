@@ -14,6 +14,9 @@ const GENEROS = [
 const TIPOS = ['Zapatillas', 'Botitas', 'Lona', 'Sandalias']
 const USOS = ['Running', 'Urbano', 'Padel', 'Confort', 'Fiesta', 'Primeros pasos']
 
+// precio y descripcion vacios = "vale y se describe igual que el producto".
+const COLOR_VACIO = { nombre: '', hex: '#141414', imagen: null, precio: '', descripcion: '' }
+
 const NUEVO = {
   id: '',
   marca: '',
@@ -27,7 +30,8 @@ const NUEVO = {
   desde: 35,
   hasta: 45,
   consultarTalle: false,
-  colores: [{ nombre: 'Negro', hex: '#141414', imagen: null }],
+  descripcion: '',
+  colores: [COLOR_VACIO],
   destacado: false,
   nuevo: true,
   activo: true
@@ -56,6 +60,7 @@ export default function PanelProductos({ token }) {
   const [error, setError] = useState(null)
   const [ok, setOk] = useState(null)
   const [subiendo, setSubiendo] = useState(null)
+  const [colorMal, setColorMal] = useState(null)
   const archivos = useRef({})
 
   const cargar = useCallback(
@@ -64,7 +69,7 @@ export default function PanelProductos({ token }) {
       setOk(null)
       if (!p) {
         setElegido(null)
-        setForm({ ...NUEVO, colores: [{ nombre: 'Negro', hex: '#141414', imagen: null }] })
+        setForm({ ...NUEVO, colores: [{ ...COLOR_VACIO }] })
         return
       }
       setElegido(p.id)
@@ -75,7 +80,13 @@ export default function PanelProductos({ token }) {
         precioAnterior: p.precioAnterior ? String(p.precioAnterior) : '',
         desde: p.talles?.[0] ?? 35,
         hasta: p.talles?.[p.talles.length - 1] ?? 45,
-        colores: p.colores?.length ? p.colores : NUEVO.colores
+        descripcion: p.descripcion || '',
+        colores: (p.colores?.length ? p.colores : [COLOR_VACIO]).map((c) => ({
+          ...COLOR_VACIO,
+          ...c,
+          precio: c.precio == null ? '' : String(c.precio),
+          descripcion: c.descripcion || ''
+        }))
       })
     },
     []
@@ -131,6 +142,30 @@ export default function PanelProductos({ token }) {
 
   const guardar = async (e) => {
     e.preventDefault()
+    setColorMal(null)
+
+    // Un color sin nombre no se puede guardar. Antes se mandaba igual, el
+    // servidor lo descartaba callado y el local veia "Producto actualizado"
+    // mientras el color desaparecia. Ahora frena aca y dice cual es.
+    const falta = form.colores.findIndex((c) => !String(c.nombre || '').trim())
+    if (falta !== -1) {
+      setColorMal(falta)
+      setOk(null)
+      setError(`Falta el nombre del color ${falta + 1}. Escribilo y volvé a guardar.`)
+      document.getElementById(`color-nombre-${falta}`)?.focus()
+      return
+    }
+
+    const precioMal = form.colores.findIndex(
+      (c) => String(c.precio || '').trim() !== '' && !(Number(c.precio) > 0)
+    )
+    if (precioMal !== -1) {
+      setColorMal(precioMal)
+      setOk(null)
+      setError(`El precio del color ${precioMal + 1} no es un número válido. Dejalo vacío si vale igual que el producto.`)
+      return
+    }
+
     setGuardando(true)
     setError(null)
     try {
@@ -146,7 +181,10 @@ export default function PanelProductos({ token }) {
         body: JSON.stringify({ producto: cuerpo })
       })
       const data = await r.json()
-      if (!r.ok) throw new Error(data.error || 'No se pudo guardar')
+      if (!r.ok) {
+        if (Number.isInteger(data.colorSinNombre)) setColorMal(data.colorSinNombre)
+        throw new Error(data.error || 'No se pudo guardar')
+      }
       setOk(elegido ? 'Producto actualizado' : 'Producto creado')
       // El catalogo del sitio se refresca al recargar la pagina.
     } catch (err) {
@@ -231,6 +269,19 @@ export default function PanelProductos({ token }) {
               onChange={(e) => set('nombre', e.target.value)}
               placeholder="Zapatillas Jaguar 9412 Retro"
             />
+          </label>
+
+          <label className="campo ancho">
+            Descripción <span className="opcional">(opcional)</span>
+            <textarea
+              rows={3}
+              value={form.descripcion}
+              onChange={(e) => set('descripcion', e.target.value)}
+              placeholder="Capellada elastizada, plantilla de memory foam, suela liviana. Ideal para caminar todo el día."
+            />
+            <small className="campo-nota">
+              Se muestra en la página del producto. Cada color puede tener la suya propia.
+            </small>
           </label>
 
           <label className="campo">
@@ -380,12 +431,19 @@ export default function PanelProductos({ token }) {
               </div>
 
               <div className="prods-color-datos">
-                <label className="campo">
-                  Nombre del color
+                {/* El placeholder lleva "Ej:" adelante para que el gris no se
+                    lea como un valor ya cargado: eso era lo que hacia que el
+                    local guardara el color sin nombre y lo perdiera. */}
+                <label className={`campo${colorMal === i ? ' campo-error' : ''}`}>
+                  Nombre del color <span className="obligatorio">*</span>
                   <input
+                    id={`color-nombre-${i}`}
                     value={c.nombre}
-                    onChange={(e) => setColor(i, 'nombre', e.target.value)}
-                    placeholder="Negro"
+                    onChange={(e) => {
+                      setColor(i, 'nombre', e.target.value)
+                      if (colorMal === i) setColorMal(null)
+                    }}
+                    placeholder="Ej: Negro"
                   />
                 </label>
                 <label className="campo">
@@ -394,6 +452,24 @@ export default function PanelProductos({ token }) {
                     type="color"
                     value={c.hex}
                     onChange={(e) => setColor(i, 'hex', e.target.value)}
+                  />
+                </label>
+                <label className="campo">
+                  Precio de este color <span className="opcional">(opcional)</span>
+                  <input
+                    inputMode="numeric"
+                    value={c.precio}
+                    onChange={(e) => setColor(i, 'precio', e.target.value.replace(/[^\d]/g, ''))}
+                    placeholder={form.precio ? `Vale ${form.precio}` : 'Igual que el producto'}
+                  />
+                </label>
+                <label className="campo ancho">
+                  Descripción de este color <span className="opcional">(opcional)</span>
+                  <textarea
+                    rows={2}
+                    value={c.descripcion}
+                    onChange={(e) => setColor(i, 'descripcion', e.target.value)}
+                    placeholder="Si este color tiene algo distinto, contalo acá. Si no, se usa la del producto."
                   />
                 </label>
               </div>
@@ -434,7 +510,7 @@ export default function PanelProductos({ token }) {
             type="button"
             className="btn btn-linea"
             onClick={() =>
-              set('colores', [...form.colores, { nombre: '', hex: '#141414', imagen: null }])
+              set('colores', [...form.colores, { ...COLOR_VACIO }])
             }
           >
             <Plus size={15} /> Agregar otro color

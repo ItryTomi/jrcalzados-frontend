@@ -152,8 +152,28 @@
   color: var(--lima-osc);
 }
 
-.prods-color-datos { display: grid; grid-template-columns: 1fr 110px; gap: 10px; }
+.prods-color-datos { display: grid; grid-template-columns: 1fr 110px 150px; gap: 10px; }
 .prods-color-datos input[type='color'] { padding: 4px; height: 40px; cursor: pointer; }
+/* La descripcion del color ocupa toda la fila, debajo del resto. */
+.prods-color-datos .campo.ancho { grid-column: 1 / -1; }
+.prods-color-datos textarea { resize: vertical; }
+
+/* El asterisco de obligatorio. Existe porque un color sin nombre no se
+   guarda, y antes eso no se avisaba en ningun lado. */
+.obligatorio { color: var(--rojo); font-weight: 700; }
+
+.campo-nota {
+  display: block;
+  margin-top: 5px;
+  font-size: .74rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--gris-txt);
+}
+
+/* .campo-error solo pintaba input y select. Los textarea del panel tambien. */
+.campo-error textarea { border-color: var(--rojo); }
 
 .prods-color-acciones { display: flex; align-items: center; gap: 8px; }
 .prods-color-acciones .btn { padding: 10px 14px; font-size: .7rem; white-space: nowrap; }
@@ -182,6 +202,7 @@
 @media (max-width: 620px) {
   .prods-color { grid-template-columns: 74px 1fr; }
   .prods-color-datos { grid-template-columns: 1fr; }
+  .prods-color-datos .campo.ancho { grid-column: auto; }
   .prods-color-acciones { grid-column: 1 / -1; }
 }
 

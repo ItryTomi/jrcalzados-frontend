@@ -8,7 +8,7 @@
 // confiaramos en el precio que llega del cliente, cualquiera podria editar
 // el pedido y pagar $1.
 
-import { PRODUCTOS } from '../src/data/productos.js'
+import { PRODUCTOS, precioDe } from '../src/data/productos.js'
 import { hayBase, guardarPedidoIniciado, faltantesDeStock } from './_db.js'
 import { leerCatalogo } from './_catalogo.js'
 import { usuarioDeLaPeticion } from './_auth.js'
@@ -124,7 +124,11 @@ export default async function handler(req, res) {
       category_id: 'fashion',
       quantity: cantidad,
       currency_id: 'ARS',
-      unit_price: prod.precio, // <- precio del catalogo del servidor
+      // El precio sale del color elegido, que puede valer distinto al
+      // producto (la blanca mas cara que la negra). Misma funcion que usa
+      // el navegador, asi que lo que se muestra y lo que se cobra no se
+      // pueden separar.
+      unit_price: precioDe(prod, color),
       picture_url: color.imagen ? `${base}${color.imagen}` : undefined
     })
   }

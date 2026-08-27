@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ChevronRight, CreditCard, MapPin, RefreshCw, Ruler, Truck } from 'lucide-react'
-import { descuento, precioARS, rangoTalles, CUOTAS } from '../data/productos'
+import { descuento, precioARS, rangoTalles, precioDe, descripcionDe, CUOTAS } from '../data/productos'
 import { useCatalogo } from '../context/CatalogoContext'
 import { TIENDA, linkWhatsApp } from '../data/tienda'
 import { useCarrito } from '../context/CartContext'
@@ -38,8 +38,14 @@ export default function Producto() {
     )
   }
 
-  const off = descuento(producto)
-  const cuota = Math.round(producto.precio / CUOTAS)
+  // Todo lo que cambia al elegir otro color se calcula aca, no en el JSX,
+  // asi el precio, las cuotas y el % OFF no se pueden ir cada uno por su lado.
+  const precio = precioDe(producto, color)
+  const texto = descripcionDe(producto, color)
+  const off = producto.precioAnterior
+    ? Math.round((1 - precio / producto.precioAnterior) * 100)
+    : descuento(producto)
+  const cuota = Math.round(precio / CUOTAS)
   const relacionados = PRODUCTOS.filter(
     (x) => x.id !== producto.id && (x.tipo === producto.tipo || x.marca === producto.marca)
   ).slice(0, 4)
@@ -115,7 +121,7 @@ export default function Producto() {
               {producto.precioAnterior && (
                 <span className="precio-viejo">{precioARS(producto.precioAnterior)}</span>
               )}
-              <span className="precio-grande">{precioARS(producto.precio)}</span>
+              <span className="precio-grande">{precioARS(precio)}</span>
               {off > 0 && <span className="et et-off">{off}% OFF</span>}
             </div>
             <p className="producto-cuotas">
@@ -123,6 +129,8 @@ export default function Producto() {
                 {CUOTAS} cuotas sin interes de {precioARS(cuota)}
               </strong>
             </p>
+
+            {texto && <p className="producto-desc">{texto}</p>}
 
             <div className="producto-colores">
               <span className="etiqueta-campo">

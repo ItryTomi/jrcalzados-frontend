@@ -67,7 +67,10 @@ export default async function handler(req, res) {
       const validos = cambios.filter(
         (c) => c && c.id && Number.isFinite(Number(c.nuevo)) && Number(c.nuevo) >= 0
       )
-      const n = await aplicarAumento(validos.map((c) => ({ id: c.id, nuevo: Number(c.nuevo) })))
+      const n = await aplicarAumento(
+        validos.map((c) => ({ id: c.id, nuevo: Number(c.nuevo) })),
+        cuerpo.redondeo || 'peso'
+      )
       return res.status(200).json({ actualizados: n })
     }
 

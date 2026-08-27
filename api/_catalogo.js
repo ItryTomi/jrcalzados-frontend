@@ -34,6 +34,10 @@ export async function asegurarCatalogo() {
     )
   `
 
+  // La descripcion se agrego despues de la primera version, por eso va como
+  // ALTER y no dentro del CREATE: las bases que ya existen no se recrean.
+  await sql`ALTER TABLE productos ADD COLUMN IF NOT EXISTS descripcion text`
+
   const hay = await sql`SELECT count(*)::int AS n FROM productos`
   if (hay[0].n === 0) await sembrar()
 
@@ -65,6 +69,7 @@ const aProducto = (f) => ({
   genero: f.genero,
   tipo: f.tipo,
   uso: f.uso,
+  descripcion: f.descripcion || '',
   precio: Number(f.precio),
   precioAnterior: f.precio_anterior === null ? null : Number(f.precio_anterior),
   talles: f.talles || [],
@@ -120,12 +125,37 @@ export async function simularAumento({ porcentaje, marca, tipo, redondeo }) {
   })
 }
 
-export async function aplicarAumento(cambios) {
+// Sube los precios propios de cada color en la misma proporcion que el del
+// producto. Si no se hiciera, un aumento del 20% dejaria a la zapatilla
+// blanca con el precio del mes pasado.
+const escalarColores = (colores, factor, redondeo) =>
+  (Array.isArray(colores) ? colores : []).map((c) => {
+    const propio = Number(c?.precio)
+    if (!Number.isFinite(propio) || propio <= 0) return c
+    return { ...c, precio: Math.max(0, redondearA(propio * factor, redondeo)) }
+  })
+
+export async function aplicarAumento(cambios, redondeo = 'peso') {
   await asegurarCatalogo()
   const sql = db()
-  const consultas = cambios.map((c) => sql`
-    UPDATE productos SET precio = ${c.nuevo}, actualizado_en = now() WHERE id = ${c.id}
-  `)
+
+  const ids = cambios.map((c) => c.id)
+  const actuales = await sql`SELECT id, precio, colores FROM productos WHERE id = ANY(${ids})`
+  const porId = new Map(actuales.map((f) => [f.id, f]))
+
+  const consultas = cambios.map((c) => {
+    const fila = porId.get(c.id)
+    const antes = Number(fila?.precio)
+    const factor = Number.isFinite(antes) && antes > 0 ? c.nuevo / antes : 1
+    const colores = escalarColores(fila?.colores, factor, redondeo)
+    return sql`
+      UPDATE productos
+      SET precio = ${c.nuevo},
+          colores = ${JSON.stringify(colores)},
+          actualizado_en = now()
+      WHERE id = ${c.id}
+    `
+  })
   if (consultas.length) await sql.transaction(consultas)
   return consultas.length
 }
@@ -133,10 +163,17 @@ export async function aplicarAumento(cambios) {
 export async function actualizarPrecio(id, precio, precioAnterior) {
   await asegurarCatalogo()
   const sql = db()
+
+  const previas = await sql`SELECT precio, colores FROM productos WHERE id = ${id}`
+  const antes = Number(previas[0]?.precio)
+  const factor = Number.isFinite(antes) && antes > 0 ? Number(precio) / antes : 1
+  const colores = escalarColores(previas[0]?.colores, factor, 'peso')
+
   const filas = await sql`
     UPDATE productos SET
       precio          = ${Number(precio)},
       precio_anterior = ${precioAnterior === undefined ? null : precioAnterior},
+      colores         = ${JSON.stringify(colores)},
       actualizado_en  = now()
     WHERE id = ${id}
     RETURNING *
@@ -150,11 +187,11 @@ export async function guardarProducto(p) {
   await asegurarCatalogo()
   const sql = db()
   const filas = await sql`
-    INSERT INTO productos (id, marca, codigo, nombre, genero, tipo, uso, precio,
-                           precio_anterior, talles, colores, consultar_talle,
+    INSERT INTO productos (id, marca, codigo, nombre, genero, tipo, uso, descripcion,
+                           precio, precio_anterior, talles, colores, consultar_talle,
                            destacado, nuevo, activo)
     VALUES (${p.id}, ${p.marca}, ${p.codigo}, ${p.nombre}, ${p.genero}, ${p.tipo},
-            ${p.uso}, ${p.precio}, ${p.precioAnterior},
+            ${p.uso}, ${p.descripcion || null}, ${p.precio}, ${p.precioAnterior},
             ${JSON.stringify(p.talles)}, ${JSON.stringify(p.colores)},
             ${p.consultarTalle}, ${p.destacado}, ${p.nuevo}, ${p.activo})
     ON CONFLICT (id) DO UPDATE SET
@@ -164,6 +201,7 @@ export async function guardarProducto(p) {
       genero          = EXCLUDED.genero,
       tipo            = EXCLUDED.tipo,
       uso             = EXCLUDED.uso,
+      descripcion     = EXCLUDED.descripcion,
       precio          = EXCLUDED.precio,
       precio_anterior = EXCLUDED.precio_anterior,
       talles          = EXCLUDED.talles,
