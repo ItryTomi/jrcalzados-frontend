@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react'
 import { ClerkProvider, useAuth as useClerkAuth, useUser } from '@clerk/clerk-react'
+import { esUY } from '@clerk/localizations'
 
 // Las cuentas de comprador son OPCIONALES en dos sentidos:
 //
@@ -12,6 +13,30 @@ import { ClerkProvider, useAuth as useClerkAuth, useUser } from '@clerk/clerk-re
 const CLAVE = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 export const hayCuentas = Boolean(CLAVE)
 
+// Clerk no tiene espanol de Argentina. El de Uruguay es el que mejor encaja
+// porque usa voseo igual que nosotros ("Iniciá sesión", "¿No tenés una
+// cuenta?"); el de Espana mezcla tuteo con usted y queda raro.
+//
+// Ojo: a `localization` hay que pasarle el paquete de textos entero. Antes
+// iba `{ locale: 'es-ES' }`, que Clerk ignora, y por eso salia todo en ingles.
+const ESPANOL = {
+  ...esUY,
+  signIn: {
+    ...esUY.signIn,
+    start: {
+      ...esUY.signIn.start,
+      subtitle: 'Ingresá para ver tus pedidos y comprar más rápido'
+    }
+  },
+  signUp: {
+    ...esUY.signUp,
+    start: {
+      ...esUY.signUp.start,
+      subtitle: 'Creá tu cuenta para seguir tus pedidos y guardar tu dirección'
+    }
+  }
+}
+
 const SinCuentas = createContext(null)
 
 export function AuthProvider({ children }) {
@@ -22,7 +47,7 @@ export function AuthProvider({ children }) {
     <ClerkProvider
       publishableKey={CLAVE}
       afterSignOutUrl="/"
-      localization={{ locale: 'es-ES' }}
+      localization={ESPANOL}
     >
       {children}
     </ClerkProvider>
