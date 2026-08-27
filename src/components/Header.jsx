@@ -20,6 +20,9 @@ export default function Header() {
   const { unidades, abrir } = useCarrito()
   const { marcas, tipos } = useCatalogo()
   const [menuAbierto, setMenuAbierto] = useState(false)
+  // Un solo estado para los dos desplegables: asi no pueden quedar los dos
+  // abiertos a la vez.
+  const [desplegable, setDesplegable] = useState(null)
   const [aviso, setAviso] = useState(0)
   const [busqueda, setBusqueda] = useState('')
   const navegar = useNavigate()
@@ -28,6 +31,21 @@ export default function Header() {
     const t = setInterval(() => setAviso((i) => (i + 1) % AVISOS.length), 4200)
     return () => clearInterval(t)
   }, [])
+
+  // Cierra al tocar fuera o con Escape.
+  useEffect(() => {
+    if (!desplegable) return
+    const fuera = (e) => {
+      if (!e.target.closest('.nav-desplegable')) setDesplegable(null)
+    }
+    const tecla = (e) => e.key === 'Escape' && setDesplegable(null)
+    document.addEventListener('click', fuera)
+    document.addEventListener('keydown', tecla)
+    return () => {
+      document.removeEventListener('click', fuera)
+      document.removeEventListener('keydown', tecla)
+    }
+  }, [desplegable])
 
   const enviarBusqueda = (e) => {
     e.preventDefault()
@@ -85,22 +103,50 @@ export default function Header() {
           <NavLink to="/catalogo/mujer">Mujer</NavLink>
           <NavLink to="/catalogo/ninos">Ninos</NavLink>
 
-          <div className="nav-desplegable">
-            <button type="button">Marcas</button>
-            <div className="panel">
+          <div
+            className="nav-desplegable"
+            onMouseEnter={() => setDesplegable('marcas')}
+            onMouseLeave={() => setDesplegable(null)}
+          >
+            <button
+              type="button"
+              aria-expanded={desplegable === 'marcas'}
+              onClick={() => setDesplegable((d) => (d === 'marcas' ? null : 'marcas'))}
+            >
+              Marcas
+            </button>
+            <div className={desplegable === 'marcas' ? 'panel abierto' : 'panel'}>
               {marcas.map((m) => (
-                <Link key={m} to={`/catalogo?marca=${encodeURIComponent(m)}`}>
+                <Link
+                  key={m}
+                  to={`/catalogo?marca=${encodeURIComponent(m)}`}
+                  onClick={() => setDesplegable(null)}
+                >
                   {m}
                 </Link>
               ))}
             </div>
           </div>
 
-          <div className="nav-desplegable">
-            <button type="button">Tipo</button>
-            <div className="panel">
+          <div
+            className="nav-desplegable"
+            onMouseEnter={() => setDesplegable('tipo')}
+            onMouseLeave={() => setDesplegable(null)}
+          >
+            <button
+              type="button"
+              aria-expanded={desplegable === 'tipo'}
+              onClick={() => setDesplegable((d) => (d === 'tipo' ? null : 'tipo'))}
+            >
+              Tipo
+            </button>
+            <div className={desplegable === 'tipo' ? 'panel abierto' : 'panel'}>
               {tipos.map((t) => (
-                <Link key={t} to={`/catalogo?tipo=${encodeURIComponent(t)}`}>
+                <Link
+                  key={t}
+                  to={`/catalogo?tipo=${encodeURIComponent(t)}`}
+                  onClick={() => setDesplegable(null)}
+                >
                   {t}
                 </Link>
               ))}

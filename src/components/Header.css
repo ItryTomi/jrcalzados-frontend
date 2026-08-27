@@ -168,8 +168,9 @@
   display: none;
   z-index: 20;
 }
-.nav-desplegable:hover .panel,
-.nav-desplegable:focus-within .panel { display: block; }
+/* Se abre por estado, no por :hover ni :focus-within. Con focus-within el
+   panel quedaba abierto despues del clic y se podian ver los dos a la vez. */
+.nav-desplegable .panel.abierto { display: block; }
 .nav-desplegable .panel a {
   display: block;
   padding: 9px 18px;
