@@ -17,7 +17,7 @@
   opacity: .95;
   transition: background .5s ease;
 }
-.hero-int {
+.hero .hero-int {
   position: relative;
   z-index: 2;
   display: grid;
@@ -25,8 +25,9 @@
   align-items: center;
   gap: 30px;
   min-height: 480px;
-  padding-top: 44px;
-  padding-bottom: 54px;
+  /* Va con .hero adelante: .contenedor (padding: 0 20px) se carga despues
+     y con la misma especificidad le pisaba el padding vertical. */
+  padding: 44px 20px 54px;
 }
 .hero-texto { animation: apareceIzq .5s ease; }
 @keyframes apareceIzq {
@@ -274,12 +275,13 @@
      Antes la foto se salia del viewport y empujaba el texto fuera de pantalla. */
   .hero::after { display: none; }
 
-  .hero-int {
+  .hero .hero-int {
     grid-template-columns: 1fr;
     align-items: end;
     min-height: 460px;
-    padding-top: 0;
-    padding-bottom: 42px;
+    /* El padding de abajo es el aire entre el boton y la barra de
+       beneficios; sin el quedaban pegados. */
+    padding: 0 20px 46px;
     text-align: left;
   }
   .hero-int::before {
@@ -322,8 +324,13 @@
     max-width: 34ch;
     color: rgba(255, 255, 255, .88);
   }
-  .hero .btn { padding: 13px 22px; }
-  .hero-puntos { bottom: 12px; }
+  .hero .btn {
+    padding: 11px 18px;
+    font-size: .74rem;
+    gap: 6px;
+  }
+  .hero .btn svg { width: 15px; height: 15px; }
+  .hero-puntos { bottom: 14px; }
 
   .ticker-grupo span { font-size: .66rem; margin-right: 30px; }
   .ticker-grupo span::after { margin-left: 30px; }
