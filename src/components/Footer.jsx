@@ -37,7 +37,7 @@ export default function Footer() {
           <h4>Comprar</h4>
           <Link to="/catalogo/hombre">Hombre</Link>
           <Link to="/catalogo/mujer">Mujer</Link>
-          <Link to="/catalogo/ninos">Ninos</Link>
+          <Link to="/catalogo/ninos">Niños</Link>
           <Link to="/catalogo/sandalias">Sandalias</Link>
           <Link to="/catalogo">Todo el catalogo</Link>
         </div>

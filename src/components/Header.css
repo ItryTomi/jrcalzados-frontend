@@ -123,6 +123,7 @@
 
 /* ---- Nav de categorias ---- */
 .barra-nav {
+  position: relative;
   background: var(--negro);
   color: var(--blanco);
 }
@@ -132,6 +133,7 @@
   gap: 4px;
 }
 .barra-nav-int > a,
+.nav-mega > button,
 .nav-desplegable > button {
   color: var(--blanco);
   background: none;
@@ -147,10 +149,94 @@
   align-items: center;
 }
 .barra-nav-int > a:hover,
+.nav-mega > button:hover,
+.nav-mega > button.abierto,
 .nav-desplegable > button:hover,
 .barra-nav-int > a.active {
   color: var(--lima);
   border-bottom-color: var(--lima);
+}
+
+/* ---- Mega menu ----
+   El panel se posiciona contra .barra-nav para ocupar todo el ancho, por
+   eso el contenedor va con position: static. */
+.nav-mega { position: static; }
+
+.mega {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: none;
+  background: var(--blanco);
+  color: var(--negro);
+  border-bottom: 3px solid var(--lima);
+  box-shadow: var(--sombra-alta);
+}
+.mega.abierto { display: block; }
+
+.mega-int {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) 230px;
+  gap: 30px;
+  padding-top: 26px;
+  padding-bottom: 28px;
+}
+.mega-col { display: flex; flex-direction: column; gap: 3px; }
+.mega-col h4 {
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--gris-txt);
+  margin-bottom: 9px;
+}
+.mega-col a {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: .88rem;
+  font-weight: 500;
+  border-bottom: 1px solid transparent;
+  width: fit-content;
+}
+.mega-col a:hover { color: var(--lima-osc); border-bottom-color: var(--lima); }
+.mega-col a em {
+  font-style: normal;
+  font-size: .72rem;
+  color: var(--gris-txt);
+}
+
+.mega-todo { justify-content: center; }
+.mega-todo a {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 18px 20px;
+  background: var(--negro);
+  color: var(--blanco);
+  border-radius: var(--radio);
+  font-family: var(--titulo);
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-bottom: 0;
+}
+.mega-todo a:hover { background: var(--lima); color: var(--negro); }
+.mega-todo a span {
+  font-family: var(--fuente);
+  font-size: .74rem;
+  font-weight: 500;
+  text-transform: none;
+  opacity: .7;
+}
+
+@media (max-width: 1100px) {
+  .mega-int { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .mega-todo { grid-column: 1 / -1; }
 }
 
 

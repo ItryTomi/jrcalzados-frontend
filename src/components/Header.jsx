@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Menu, Search, ShoppingBag, X, MapPin } from 'lucide-react'
 import { useCarrito } from '../context/CartContext'
@@ -16,9 +16,38 @@ const AVISOS = [
   `HASTA ${TIENDA.cuotasSinInteres} CUOTAS SIN INTERES CON TARJETA`
 ]
 
+// Los tres publicos con lo que realmente hay en cada uno. Se arma del
+// catalogo, asi nunca aparece un enlace a una categoria vacia.
+const PUBLICOS = [
+  { id: 'hombre', txt: 'Hombre', tiene: (x) => x.genero === 'hombre' || x.genero === 'unisex' },
+  {
+    id: 'mujer',
+    txt: 'Mujer',
+    tiene: (x) => x.genero === 'mujer' || x.genero === 'unisex'
+  },
+  { id: 'ninos', txt: 'Niños', tiene: (x) => x.genero === 'ninos' }
+]
+
 export default function Header() {
   const { unidades, abrir } = useCarrito()
-  const { marcas, tipos } = useCatalogo()
+  const { marcas, productos } = useCatalogo()
+
+  const menus = useMemo(
+    () =>
+      PUBLICOS.map((p) => {
+        const suyos = productos.filter(p.tiene)
+        const cuenta = (campo, valor) => suyos.filter((x) => x[campo] === valor).length
+        return {
+          ...p,
+          tipos: [...new Set(suyos.map((x) => x.tipo))].sort(),
+          usos: [...new Set(suyos.map((x) => x.uso))].sort(),
+          marcas: [...new Set(suyos.map((x) => x.marca))].sort(),
+          total: suyos.length,
+          cuenta
+        }
+      }).filter((p) => p.total > 0),
+    [productos]
+  )
   const [menuAbierto, setMenuAbierto] = useState(false)
   // Un solo estado para los dos desplegables: asi no pueden quedar los dos
   // abiertos a la vez.
@@ -36,7 +65,7 @@ export default function Header() {
   useEffect(() => {
     if (!desplegable) return
     const fuera = (e) => {
-      if (!e.target.closest('.nav-desplegable')) setDesplegable(null)
+      if (!e.target.closest('.nav-desplegable, .nav-mega')) setDesplegable(null)
     }
     const tecla = (e) => e.key === 'Escape' && setDesplegable(null)
     document.addEventListener('click', fuera)
@@ -99,9 +128,73 @@ export default function Header() {
 
       <nav className="barra-nav" aria-label="Categorias">
         <div className="contenedor barra-nav-int">
-          <NavLink to="/catalogo/hombre">Hombre</NavLink>
-          <NavLink to="/catalogo/mujer">Mujer</NavLink>
-          <NavLink to="/catalogo/ninos">Ninos</NavLink>
+          {menus.map((m) => (
+            <div
+              className="nav-mega"
+              key={m.id}
+              onMouseEnter={() => setDesplegable(m.id)}
+              onMouseLeave={() => setDesplegable(null)}
+            >
+              <button
+                type="button"
+                aria-expanded={desplegable === m.id}
+                className={desplegable === m.id ? 'abierto' : ''}
+                onClick={() => setDesplegable((d) => (d === m.id ? null : m.id))}
+              >
+                {m.txt}
+              </button>
+
+              <div className={desplegable === m.id ? 'mega abierto' : 'mega'}>
+                <div className="contenedor mega-int">
+                  <div className="mega-col">
+                    <h4>Tipo de calzado</h4>
+                    {m.tipos.map((t) => (
+                      <Link
+                        key={t}
+                        to={`/catalogo/${m.id}?tipo=${encodeURIComponent(t)}`}
+                        onClick={() => setDesplegable(null)}
+                      >
+                        {t} <em>{m.cuenta('tipo', t)}</em>
+                      </Link>
+                    ))}
+                  </div>
+
+                  <div className="mega-col">
+                    <h4>Para que</h4>
+                    {m.usos.map((u) => (
+                      <Link
+                        key={u}
+                        to={`/catalogo/${m.id}?uso=${encodeURIComponent(u)}`}
+                        onClick={() => setDesplegable(null)}
+                      >
+                        {u} <em>{m.cuenta('uso', u)}</em>
+                      </Link>
+                    ))}
+                  </div>
+
+                  <div className="mega-col">
+                    <h4>Marcas</h4>
+                    {m.marcas.map((x) => (
+                      <Link
+                        key={x}
+                        to={`/catalogo/${m.id}?marca=${encodeURIComponent(x)}`}
+                        onClick={() => setDesplegable(null)}
+                      >
+                        {x}
+                      </Link>
+                    ))}
+                  </div>
+
+                  <div className="mega-col mega-todo">
+                    <Link to={`/catalogo/${m.id}`} onClick={() => setDesplegable(null)}>
+                      Ver todo {m.txt.toLowerCase()}
+                      <span>{m.total} productos</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
 
           <div
             className="nav-desplegable"
@@ -128,32 +221,6 @@ export default function Header() {
             </div>
           </div>
 
-          <div
-            className="nav-desplegable"
-            onMouseEnter={() => setDesplegable('tipo')}
-            onMouseLeave={() => setDesplegable(null)}
-          >
-            <button
-              type="button"
-              aria-expanded={desplegable === 'tipo'}
-              onClick={() => setDesplegable((d) => (d === 'tipo' ? null : 'tipo'))}
-            >
-              Tipo
-            </button>
-            <div className={desplegable === 'tipo' ? 'panel abierto' : 'panel'}>
-              {tipos.map((t) => (
-                <Link
-                  key={t}
-                  to={`/catalogo?tipo=${encodeURIComponent(t)}`}
-                  onClick={() => setDesplegable(null)}
-                >
-                  {t}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          <NavLink to="/catalogo/sandalias">Sandalias</NavLink>
           <NavLink to="/contacto">Contacto</NavLink>
 
           <span className="nav-local">
@@ -186,7 +253,7 @@ export default function Header() {
             <nav onClick={() => setMenuAbierto(false)}>
               <Link to="/catalogo/hombre">Hombre</Link>
               <Link to="/catalogo/mujer">Mujer</Link>
-              <Link to="/catalogo/ninos">Ninos</Link>
+              <Link to="/catalogo/ninos">Niños</Link>
               <Link to="/catalogo/sandalias">Sandalias</Link>
               <Link to="/catalogo">Ver todo el catalogo</Link>
               <Link to="/contacto">Contacto</Link>

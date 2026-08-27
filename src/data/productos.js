@@ -21,7 +21,7 @@ import { TIENDA } from './tienda.js'
 export const CATEGORIAS = [
   { slug: 'hombre', nombre: 'Hombre' },
   { slug: 'mujer', nombre: 'Mujer' },
-  { slug: 'ninos', nombre: 'Ninos' },
+  { slug: 'ninos', nombre: 'Niños' },
   { slug: 'sandalias', nombre: 'Sandalias' }
 ]
 

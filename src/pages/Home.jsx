@@ -41,7 +41,7 @@ const SLIDES = [
 const CATEGORIAS_HOME = [
   { nombre: 'Zapatillas hombre', link: '/catalogo/hombre', imagen: '/productos/jaguar-9435-negra.jpg' },
   { nombre: 'Zapatillas mujer', link: '/catalogo/mujer', imagen: '/productos/jaguar-9394-rosa.jpg' },
-  { nombre: 'Ninos', link: '/catalogo/ninos', imagen: '/productos/jaguar-4036-rosa.jpg' },
+  { nombre: 'Niños', link: '/catalogo/ninos', imagen: '/productos/jaguar-4036-rosa.jpg' },
   { nombre: 'Running', link: '/catalogo?uso=Running', imagen: '/productos/olympikus-lance-menta.jpg' },
   { nombre: 'Padel y tenis', link: '/catalogo?uso=Padel', imagen: '/productos/diportto-olympiadi-azul.jpg' },
   { nombre: 'Botitas', link: '/catalogo?tipo=Botitas', imagen: '/productos/jaguar-4351-negra.jpg' },
@@ -57,7 +57,7 @@ const CATEGORIAS_HOME = [
 const VITRINAS = [
   { titulo: 'Para ellas', rotulo: 'Mujer', link: '/catalogo/mujer', filtro: (x) => x.genero === 'mujer' && x.tipo !== 'Sandalias' },
   { titulo: 'Para ellos', rotulo: 'Hombre', link: '/catalogo/hombre', filtro: (x) => x.genero === 'hombre' || x.genero === 'unisex' },
-  { titulo: 'Para los chicos', rotulo: 'Ninos', link: '/catalogo/ninos', filtro: (x) => x.genero === 'ninos' },
+  { titulo: 'Para los chicos', rotulo: 'Niños', link: '/catalogo/ninos', filtro: (x) => x.genero === 'ninos' },
   { titulo: 'Sandalias', rotulo: 'Temporada', link: '/catalogo/sandalias', filtro: (x) => x.tipo === 'Sandalias' }
 ]
 

@@ -10,7 +10,7 @@ import './Catalogo.css'
 const TITULOS = {
   hombre: 'Calzado de hombre',
   mujer: 'Calzado de mujer',
-  ninos: 'Calzado de ninos',
+  ninos: 'Calzado de niños',
   sandalias: 'Sandalias',
   ofertas: 'Ofertas'
 }
