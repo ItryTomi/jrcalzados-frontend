@@ -45,6 +45,20 @@ export async function asegurarTablas() {
   await sql`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS stock_descontado boolean NOT NULL DEFAULT false`
   await sql`CREATE INDEX IF NOT EXISTS pedidos_estado_idx ON pedidos (estado, creado_en DESC)`
 
+  // Pedidos ligados a la cuenta del comprador (queda null si compro como
+  // invitado, que sigue siendo el camino por defecto).
+  await sql`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS usuario_id text`
+  await sql`CREATE INDEX IF NOT EXISTS pedidos_usuario_idx ON pedidos (usuario_id, creado_en DESC)`
+
+  // Datos de envio guardados por comprador. Aca NO va nada de tarjetas.
+  await sql`
+    CREATE TABLE IF NOT EXISTS perfiles (
+      usuario_id     text PRIMARY KEY,
+      datos          jsonb NOT NULL DEFAULT '{}'::jsonb,
+      actualizado_en timestamptz NOT NULL DEFAULT now()
+    )
+  `
+
   // Stock por variante. Si una variante NO tiene fila, se considera sin
   // control: se puede vender. Asi el sistema queda inerte hasta que el
   // local cargue las cantidades desde el panel.
@@ -67,14 +81,16 @@ export async function guardarPedidoIniciado({
   items,
   preferenciaId,
   comprador,
-  entrega
+  entrega,
+  usuarioId
 }) {
   await asegurarTablas()
   const sql = db()
   await sql`
-    INSERT INTO pedidos (orden, estado, total, items, preferencia_id, comprador, entrega)
+    INSERT INTO pedidos (orden, estado, total, items, preferencia_id, comprador, entrega, usuario_id)
     VALUES (${orden}, 'iniciado', ${total}, ${JSON.stringify(items)}, ${preferenciaId},
-            ${JSON.stringify(comprador || null)}, ${JSON.stringify(entrega || null)})
+            ${JSON.stringify(comprador || null)}, ${JSON.stringify(entrega || null)},
+            ${usuarioId || null})
     ON CONFLICT (orden) DO UPDATE
       SET preferencia_id = EXCLUDED.preferencia_id,
           comprador      = COALESCE(EXCLUDED.comprador, pedidos.comprador),
@@ -207,4 +223,42 @@ export async function descontarStock(orden, items) {
   consultas.push(sql`UPDATE pedidos SET stock_descontado = true WHERE orden = ${orden}`)
   await sql.transaction(consultas)
   return true
+}
+
+
+// ============================================================
+//  CUENTAS DE COMPRADOR
+// ============================================================
+
+// Solo los pedidos de ese usuario, y solo los campos que le importan a el.
+export async function pedidosDeUsuario(usuarioId) {
+  await asegurarTablas()
+  const sql = db()
+  return sql`
+    SELECT orden, estado, total, items, entrega, envio_estado, seguimiento, creado_en
+    FROM pedidos
+    WHERE usuario_id = ${usuarioId}
+    ORDER BY creado_en DESC
+    LIMIT 100
+  `
+}
+
+export async function leerPerfil(usuarioId) {
+  await asegurarTablas()
+  const sql = db()
+  const filas = await sql`SELECT datos FROM perfiles WHERE usuario_id = ${usuarioId}`
+  return filas[0]?.datos || null
+}
+
+export async function guardarPerfil(usuarioId, datos) {
+  await asegurarTablas()
+  const sql = db()
+  const filas = await sql`
+    INSERT INTO perfiles (usuario_id, datos)
+    VALUES (${usuarioId}, ${JSON.stringify(datos)})
+    ON CONFLICT (usuario_id) DO UPDATE
+      SET datos = EXCLUDED.datos, actualizado_en = now()
+    RETURNING datos
+  `
+  return filas[0]?.datos || null
 }

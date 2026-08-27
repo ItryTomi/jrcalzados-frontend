@@ -11,6 +11,7 @@
 import { PRODUCTOS } from '../src/data/productos.js'
 import { hayBase, guardarPedidoIniciado, faltantesDeStock } from './_db.js'
 import { leerCatalogo } from './_catalogo.js'
+import { usuarioDeLaPeticion } from './_auth.js'
 
 const MAX_UNIDADES_POR_LINEA = 10
 const MAX_LINEAS = 30
@@ -150,6 +151,10 @@ export default async function handler(req, res) {
     }
   }
 
+  // Si vino con sesion, el pedido queda atado a su cuenta. Si no, es
+  // una compra de invitado y sigue igual que siempre.
+  const usuarioId = await usuarioDeLaPeticion(req)
+
   const orden = `JR-${Date.now().toString(36).toUpperCase()}`
   const total = detalle.reduce((a, i) => a + i.unit_price * i.quantity, 0)
 
@@ -229,7 +234,8 @@ export default async function handler(req, res) {
             telefono: texto(comprador.telefono, 30),
             documento: texto(comprador.dni, 15) || null
           },
-          entrega
+          entrega,
+          usuarioId
         })
       } catch (e) {
         console.error('No se pudo guardar el pedido:', e.message)

@@ -5,6 +5,7 @@ import { useCarrito } from '../context/CartContext'
 import { precioARS, CUOTAS } from '../data/productos'
 import { TIENDA } from '../data/tienda'
 import { iniciarPago } from '../services/pago'
+import { useCuenta } from '../context/AuthContext'
 import FotoProducto from '../components/FotoProducto'
 import './Checkout.css'
 
@@ -35,6 +36,7 @@ const CLAVE = 'jr-datos-envio'
 
 export default function Checkout() {
   const { lineas, subtotal, unidades } = useCarrito()
+  const { entrado, usuario, token } = useCuenta()
   const navegar = useNavigate()
 
   const [form, setForm] = useState(() => {
@@ -52,6 +54,37 @@ export default function Checkout() {
   useEffect(() => {
     if (!lineas.length) navegar('/catalogo', { replace: true })
   }, [lineas.length, navegar])
+
+  // Si entro con su cuenta, completamos con lo que ya tenemos guardado.
+  // Lo que el comprador haya escrito recien tiene prioridad.
+  useEffect(() => {
+    if (!entrado) return
+    let vivo = true
+    ;(async () => {
+      try {
+        const t = await token()
+        const r = await fetch('/api/mi-perfil', {
+          headers: t ? { Authorization: `Bearer ${t}` } : {}
+        })
+        const d = r.ok ? await r.json() : {}
+        if (!vivo) return
+        setForm((f) => ({
+          ...f,
+          nombre: f.nombre || usuario?.nombre || '',
+          apellido: f.apellido || usuario?.apellido || '',
+          email: f.email || usuario?.email || '',
+          ...Object.fromEntries(
+            Object.entries(d.perfil || {}).filter(([k, v]) => v && !f[k])
+          )
+        }))
+      } catch {
+        /* si falla, el formulario queda vacio y se completa a mano */
+      }
+    })()
+    return () => {
+      vivo = false
+    }
+  }, [entrado, usuario, token])
 
   const cambiar = (e) => {
     const { name, value } = e.target
@@ -93,6 +126,7 @@ export default function Checkout() {
     setEnviando(true)
     try {
       const { url } = await iniciarPago(lineas, {
+        token: entrado ? await token() : null,
         comprador: {
           nombre: form.nombre.trim(),
           apellido: form.apellido.trim(),

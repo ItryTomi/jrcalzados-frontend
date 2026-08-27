@@ -1,0 +1,23 @@
+.cuenta { display: flex; align-items: center; gap: 10px; }
+
+.cuenta-entrar,
+.cuenta-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: none;
+  border: 0;
+  padding: 8px;
+  color: var(--negro);
+  font-family: inherit;
+  font-size: .8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.cuenta-entrar:hover,
+.cuenta-link:hover { color: var(--lima-osc); }
+
+@media (max-width: 980px) {
+  .cuenta-entrar span,
+  .cuenta-link span { display: none; }
+}

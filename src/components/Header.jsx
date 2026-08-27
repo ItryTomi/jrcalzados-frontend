@@ -5,6 +5,7 @@ import { useCarrito } from '../context/CartContext'
 import { useCatalogo } from '../context/CatalogoContext'
 import { TIENDA } from '../data/tienda'
 import Logo from './Logo'
+import BotonCuenta from './BotonCuenta'
 import './Header.css'
 
 const AVISOS = [
@@ -77,6 +78,7 @@ export default function Header() {
               <Phone size={18} />
               <span>{TIENDA.whatsappVisible}</span>
             </a>
+            <BotonCuenta />
             <button className="accion-carrito" onClick={abrir} aria-label="Abrir carrito">
               <ShoppingBag size={22} />
               {unidades > 0 && <span className="globo">{unidades}</span>}

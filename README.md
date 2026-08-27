@@ -276,6 +276,34 @@ Pestana **Precios** del panel. Dos formas de trabajar:
   y recien se escribe al confirmar.
 - **Precio suelto**: editar el numero de un producto y salir del casillero.
 
+### Cuentas de comprador (Clerk)
+
+Login con Google, Apple o mail. **Es opcional en dos sentidos**: si no hay claves de
+Clerk cargadas no aparece ni el boton de ingresar y la web funciona como hasta ahora;
+y aunque haya cuentas, **nunca se obliga a registrarse para comprar**. Pedir registro
+antes de pagar es de las cosas que mas ventas hacen perder.
+
+Que gana el comprador con cuenta:
+
+- **`/mi-cuenta`** con sus pedidos, estado y numero de seguimiento
+- **Datos de envio guardados**: el checkout se completa solo la proxima vez
+- El pedido queda atado a su cuenta (`usuario_id` en `pedidos`)
+
+**No se guardan datos de tarjeta.** Eso es territorio PCI-DSS y lo resuelve Mercado
+Pago del lado de ellos: el numero nunca pasa por nuestro sitio ni por nuestra base.
+
+Ponerlo a andar:
+
+1. Crear la aplicacion en https://dashboard.clerk.com
+2. Activar Google (y los metodos que quieran) en **User & Authentication**
+3. Cargar en Vercel:
+   - `VITE_CLERK_PUBLISHABLE_KEY` (publica, empieza con `pk_`)
+   - `CLERK_SECRET_KEY` (secreta, empieza con `sk_`)
+4. En Clerk, agregar el dominio del sitio en **Domains**
+
+El token de sesion se valida **siempre en el servidor** contra Clerk (`api/_auth.js`):
+nunca se confia en un id de usuario que mande el navegador.
+
 ### Lo que todavia falta
 
 - **Alta de productos con fotos.** El panel maneja precios y stock, pero cargar un

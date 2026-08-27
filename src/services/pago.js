@@ -6,7 +6,11 @@ const CLAVE_ORDEN = 'jr-ultima-orden'
 export async function iniciarPago(lineas, datos = {}) {
   const r = await fetch('/api/crear-preferencia', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      // Si hay sesion, el pedido queda atado a la cuenta del comprador.
+      ...(datos.token ? { Authorization: `Bearer ${datos.token}` } : {})
+    },
     body: JSON.stringify({
       items: lineas.map((l) => ({
         id: l.id,
