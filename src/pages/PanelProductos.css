@@ -184,3 +184,10 @@
   .prods-color-datos { grid-template-columns: 1fr; }
   .prods-color-acciones { grid-column: 1 / -1; }
 }
+
+.prods-limite {
+  flex: 1 1 100%;
+  margin: 2px 0 0;
+  font-size: .74rem;
+  color: var(--gris-txt);
+}

@@ -29,6 +29,12 @@ const esAdmin = (req) => {
 
 const texto = (v, max = 120) => String(v ?? '').trim().slice(0, max)
 
+// Del 16 al 48. El formulario ya acota, pero eso se puede saltear mandando
+// el pedido a mano: sin este tope un rango absurdo llena la base y rompe
+// la pagina de todos.
+const TALLE_MIN = 16
+const TALLE_MAX = 48
+
 // De "Zapatillas Jaguar 9412" sale "zapatillas-jaguar-9412".
 const aSlug = (s) =>
   texto(s, 80)
@@ -86,12 +92,14 @@ export default async function handler(req, res) {
           ...new Set(
             (Array.isArray(producto.talles) ? producto.talles : [])
               .map((t) => parseInt(t, 10))
-              .filter((t) => Number.isFinite(t) && t > 0 && t < 60)
+              .filter((t) => Number.isFinite(t) && t >= TALLE_MIN && t <= TALLE_MAX)
           )
         ].sort((a, b) => a - b)
 
     if (!consultarTalle && !talles.length) {
-      return res.status(400).json({ error: 'Cargá los talles o marcá "a consultar"' })
+      return res.status(400).json({
+        error: `Cargá los talles (entre ${TALLE_MIN} y ${TALLE_MAX}) o marcá "a consultar"`
+      })
     }
 
     const guardado = await guardarProducto({

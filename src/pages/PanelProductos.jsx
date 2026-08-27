@@ -33,9 +33,18 @@ const NUEVO = {
   activo: true
 }
 
+// Del 16 (pie de nene) al 48 (pie de adulto grande). Sin este tope, un
+// numero mal tipeado genera decenas de miles de talles y tumba la pagina.
+export const TALLE_MIN = 16
+export const TALLE_MAX = 48
+
+const acotar = (v) => Math.min(TALLE_MAX, Math.max(TALLE_MIN, parseInt(v, 10) || TALLE_MIN))
+
 const rango = (a, b) => {
+  const desde = acotar(a)
+  const hasta = Math.max(desde, acotar(b))
   const out = []
-  for (let t = Number(a); t <= Number(b); t++) out.push(t)
+  for (let t = desde; t <= hasta; t++) out.push(t)
   return out
 }
 
@@ -315,10 +324,11 @@ export default function PanelProductos({ token }) {
                 Desde
                 <input
                   type="number"
-                  min="15"
-                  max="50"
+                  min={TALLE_MIN}
+                  max={TALLE_MAX}
                   value={form.desde}
                   onChange={(e) => set('desde', e.target.value)}
+                  onBlur={(e) => set('desde', acotar(e.target.value))}
                 />
               </label>
               <span>al</span>
@@ -326,14 +336,20 @@ export default function PanelProductos({ token }) {
                 Hasta
                 <input
                   type="number"
-                  min="15"
-                  max="50"
+                  min={TALLE_MIN}
+                  max={TALLE_MAX}
                   value={form.hasta}
                   onChange={(e) => set('hasta', e.target.value)}
+                  onBlur={(e) => set('hasta', Math.max(acotar(form.desde), acotar(e.target.value)))}
                 />
               </label>
               <p className="prods-preview">
-                {rango(form.desde, form.hasta).length} talles: {rango(form.desde, form.hasta).join(', ')}
+                {rango(form.desde, form.hasta).length} talles:{' '}
+                {rango(form.desde, form.hasta).join(', ')}
+              </p>
+              <p className="prods-limite">
+                Los talles van del {TALLE_MIN} al {TALLE_MAX}: del pie de un nene al de un
+                adulto grande.
               </p>
             </div>
           )}
