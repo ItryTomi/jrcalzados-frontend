@@ -133,7 +133,7 @@
   gap: 4px;
 }
 .barra-nav-int > a,
-.nav-mega > button,
+.nav-mega > a,
 .nav-desplegable > button {
   color: var(--blanco);
   background: none;
@@ -149,8 +149,9 @@
   align-items: center;
 }
 .barra-nav-int > a:hover,
-.nav-mega > button:hover,
-.nav-mega > button.abierto,
+.nav-mega > a:hover,
+.nav-mega > a.abierto,
+.nav-mega > a.active,
 .nav-desplegable > button:hover,
 .barra-nav-int > a.active {
   color: var(--lima);
@@ -179,8 +180,11 @@
 
 .mega .mega-int {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) 240px;
-  gap: 34px;
+  /* Columnas angostas y pegadas a la izquierda: las listas son cortas y
+     estiradas a todo el ancho quedaban perdidas. */
+  grid-template-columns: repeat(3, minmax(0, 230px));
+  justify-content: start;
+  gap: 56px;
   /* Aire arriba: pegado al borde el encabezado no se leia como tal. */
   padding-top: 34px;
   padding-bottom: 34px;
@@ -226,37 +230,8 @@
   border-radius: 999px;
 }
 
-.mega-todo { justify-content: flex-start; }
-.mega-todo a {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  width: 100%;
-  padding: 20px 22px;
-  background: var(--negro);
-  color: var(--blanco);
-  border-radius: var(--radio);
-  font-family: var(--titulo);
-  font-size: 1.35rem;
-  font-weight: 700;
-  line-height: 1.05;
-  text-transform: uppercase;
-  transition: background .16s, color .16s;
-}
-.mega-todo a:hover { background: var(--lima); color: var(--negro); transform: none; }
-.mega-todo a span {
-  font-family: var(--fuente);
-  font-size: .76rem;
-  font-weight: 500;
-  text-transform: none;
-  letter-spacing: 0;
-  opacity: .68;
-}
-
 @media (max-width: 1100px) {
-  .mega-int { grid-template-columns: repeat(2, 1fr); gap: 26px; }
-  .mega-todo { grid-column: 1 / -1; }
-  .mega-todo a { flex-direction: row; align-items: baseline; gap: 10px; }
+  .mega .mega-int { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
 }
 
 

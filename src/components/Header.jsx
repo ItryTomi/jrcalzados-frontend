@@ -135,14 +135,14 @@ export default function Header() {
               onMouseEnter={() => setDesplegable(m.id)}
               onMouseLeave={() => setDesplegable(null)}
             >
-              <button
-                type="button"
+              <NavLink
+                to={`/catalogo/${m.id}`}
                 aria-expanded={desplegable === m.id}
                 className={desplegable === m.id ? 'abierto' : ''}
-                onClick={() => setDesplegable((d) => (d === m.id ? null : m.id))}
+                onClick={() => setDesplegable(null)}
               >
                 {m.txt}
-              </button>
+              </NavLink>
 
               <div className={desplegable === m.id ? 'mega abierto' : 'mega'}>
                 <div className="contenedor mega-int">
@@ -183,13 +183,6 @@ export default function Header() {
                         {x}
                       </Link>
                     ))}
-                  </div>
-
-                  <div className="mega-col mega-todo">
-                    <Link to={`/catalogo/${m.id}`} onClick={() => setDesplegable(null)}>
-                      Ver todo {m.txt.toLowerCase()}
-                      <span>{m.total} productos</span>
-                    </Link>
                   </div>
                 </div>
               </div>
