@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Boxes,
   DollarSign,
+  ShieldAlert,
   KeyRound,
   ListOrdered,
   LogOut,
@@ -60,6 +61,7 @@ export default function Panel() {
   const [error, setError] = useState(null)
   const [abierto, setAbierto] = useState(null)
   const [vista, setVista] = useState('pedidos')
+  const [claveDebil, setClaveDebil] = useState(false)
 
   // El panel no debe indexarse en buscadores.
   useEffect(() => {
@@ -83,6 +85,7 @@ export default function Panel() {
       const data = await r.json().catch(() => ({}))
       if (!r.ok) throw new Error(data.error || 'No pudimos traer los pedidos')
       setPedidos(data.pedidos || [])
+      setClaveDebil(Boolean(data.claveDebil))
     } catch (e) {
       setError(e.message)
       if (/clave/i.test(e.message)) salir()
@@ -216,6 +219,18 @@ export default function Panel() {
             </button>
           </div>
         </header>
+
+        {claveDebil && (
+          <p className="panel-alerta">
+            <ShieldAlert size={17} />
+            <span>
+              <strong>La clave del panel es insegura.</strong> Desde acá se ven el nombre,
+              el teléfono y la dirección de cada comprador, y se pueden cambiar los precios.
+              Antes de empezar a vender, cambiala en Vercel (variable <code>ADMIN_TOKEN</code>)
+              por una de al menos 16 caracteres y hacé un redeploy.
+            </span>
+          </p>
+        )}
 
         {vista === 'stock' && <PanelStock token={token} />}
         {vista === 'precios' && <PanelPrecios token={token} />}
