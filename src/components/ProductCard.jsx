@@ -11,11 +11,19 @@ import './ProductCard.css'
 export default function ProductCard({ producto }) {
   const [color, setColor] = useState(producto.colores[0])
   const { agregar } = useCarrito()
-  const { estaAgotado } = useAgotados()
+  const { estaAgotado, quedan } = useAgotados()
   const sinStock =
     !producto.consultarTalle &&
     producto.talles.length > 0 &&
     producto.talles.every((t) => estaAgotado(producto.id, color.nombre, t))
+
+  // "Ultimas unidades" solo si sabemos el stock de TODOS los talles de ese
+  // color. Si alguno no tiene cantidad cargada no podemos afirmarlo.
+  const disponibles = producto.talles.filter((t) => !estaAgotado(producto.id, color.nombre, t))
+  const conteos = disponibles.map((t) => quedan(producto.id, color.nombre, t))
+  const todosConocidos = conteos.length > 0 && conteos.every((c) => c !== null)
+  const totalRestante = todosConocidos ? conteos.reduce((a, c) => a + c, 0) : null
+  const ultimas = !sinStock && totalRestante !== null && totalRestante <= 3
   const off = descuento(producto)
   const cuota = Math.round(producto.precio / CUOTAS)
 
@@ -39,6 +47,11 @@ export default function ProductCard({ producto }) {
           {off > 0 && <span className="et et-off">{off}% OFF</span>}
           {producto.nuevo && !sinStock && <span className="et et-nuevo">Nuevo</span>}
           {sinStock && <span className="et et-agotado">Sin stock</span>}
+          {ultimas && (
+            <span className="et et-ultimas">
+              {totalRestante === 1 ? 'Ultima unidad' : `Ultimas ${totalRestante}`}
+            </span>
+          )}
         </div>
 
         {producto.consultarTalle ? (

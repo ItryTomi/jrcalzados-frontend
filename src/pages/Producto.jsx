@@ -15,7 +15,7 @@ export default function Producto() {
   const { productos: PRODUCTOS, buscar } = useCatalogo()
   const producto = buscar(id)
   const { agregar } = useCarrito()
-  const { estaAgotado } = useAgotados()
+  const { estaAgotado, quedan } = useAgotados()
   const [color, setColor] = useState(producto?.colores[0])
   const [talle, setTalle] = useState(null)
   const [aviso, setAviso] = useState(false)
@@ -180,6 +180,14 @@ export default function Producto() {
                   })}
                 </div>
                 {aviso && <p className="aviso-talle">Elegi un talle para continuar</p>}
+
+                {talle && quedan(producto.id, color.nombre, talle) !== null && (
+                  <p className="quedan-pocas">
+                    {quedan(producto.id, color.nombre, talle) === 1
+                      ? 'Queda 1 unidad de este talle'
+                      : `Quedan ${quedan(producto.id, color.nombre, talle)} unidades de este talle`}
+                  </p>
+                )}
               </div>
             )}
 

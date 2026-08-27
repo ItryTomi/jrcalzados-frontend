@@ -165,12 +165,21 @@ export async function leerStock() {
   return sql`SELECT producto_id, color, talle, cantidad FROM stock ORDER BY producto_id, color, talle`
 }
 
-// Solo lo agotado: es lo unico que necesita el navegador y evita publicar
-// cuantas unidades hay de cada cosa.
-export async function leerAgotados() {
+// Cuando queda poco lo decimos ("queda 1"), pero nunca publicamos el
+// numero exacto si hay de sobra: no le sirve al comprador y le regala el
+// inventario a la competencia.
+export const UMBRAL_BAJO = 3
+
+export async function leerDisponibilidad() {
   await asegurarTablas()
   const sql = db()
-  return sql`SELECT producto_id, color, talle FROM stock WHERE cantidad <= 0`
+  const filas = await sql`
+    SELECT producto_id, color, talle, cantidad FROM stock WHERE cantidad <= ${UMBRAL_BAJO}
+  `
+  return {
+    agotados: filas.filter((f) => f.cantidad <= 0).map(({ cantidad, ...r }) => r),
+    bajos: filas.filter((f) => f.cantidad > 0)
+  }
 }
 
 export async function guardarStock(filas) {

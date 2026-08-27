@@ -7,7 +7,7 @@
 // Una variante SIN fila en la tabla se considera sin control de stock y se
 // puede vender. El sistema queda inerte hasta que el local cargue cantidades.
 
-import { hayBase, leerAgotados, leerStock, guardarStock } from './_db.js'
+import { hayBase, leerDisponibilidad, leerStock, guardarStock } from './_db.js'
 
 const leerCuerpo = async (req) => {
   if (req.body && typeof req.body === 'object') return req.body
@@ -45,7 +45,7 @@ export default async function handler(req, res) {
   // Sin base no hay control de stock: nada agotado.
   if (!hayBase()) {
     if (req.method === 'GET' && !todo) {
-      return res.status(200).json({ agotados: [], control: false })
+      return res.status(200).json({ agotados: [], bajos: [], control: false })
     }
     return res.status(503).json({ error: 'Falta configurar DATABASE_URL' })
   }
@@ -53,9 +53,9 @@ export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
       if (todo) return res.status(200).json({ stock: await leerStock() })
-      const agotados = await leerAgotados()
+      const { agotados, bajos } = await leerDisponibilidad()
       res.setHeader('Cache-Control', 'public, max-age=30, stale-while-revalidate=120')
-      return res.status(200).json({ agotados, control: true })
+      return res.status(200).json({ agotados, bajos, control: true })
     }
 
     const { filas } = await leerCuerpo(req)
