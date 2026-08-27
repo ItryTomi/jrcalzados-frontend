@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { Menu, Search, ShoppingBag, X, MapPin } from 'lucide-react'
+import { Menu, Search, ShoppingBag, X } from 'lucide-react'
 import { useCarrito } from '../context/CartContext'
 import { useCatalogo } from '../context/CatalogoContext'
 import { TIENDA } from '../data/tienda'
@@ -215,10 +215,6 @@ export default function Header() {
           </div>
 
           <NavLink to="/contacto">Contacto</NavLink>
-
-          <span className="nav-local">
-            <MapPin size={15} /> {TIENDA.ciudad}, {TIENDA.provincia}
-          </span>
         </div>
       </nav>
 

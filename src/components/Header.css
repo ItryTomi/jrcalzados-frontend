@@ -262,19 +262,6 @@
 }
 .nav-desplegable .panel a:hover { background: var(--gris-bg); color: var(--lima-osc); }
 
-.nav-local {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: .72rem;
-  font-weight: 600;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, .62);
-  padding: 13px 4px;
-}
-
 /* ---- Menu movil ---- */
 .menu-movil { position: fixed; inset: 0; z-index: 100; }
 .menu-movil .velo { position: absolute; inset: 0; background: rgba(13, 13, 13, .5); }
