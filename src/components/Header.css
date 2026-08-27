@@ -171,72 +171,92 @@
   display: none;
   background: var(--blanco);
   color: var(--negro);
-  border-bottom: 3px solid var(--lima);
+  border-top: 1px solid rgba(255, 255, 255, .08);
+  border-bottom: 2px solid var(--lima);
   box-shadow: var(--sombra-alta);
 }
 .mega.abierto { display: block; }
 
-.mega-int {
+.mega .mega-int {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) 230px;
-  gap: 30px;
-  padding-top: 26px;
-  padding-bottom: 28px;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) 240px;
+  gap: 34px;
+  /* Aire arriba: pegado al borde el encabezado no se leia como tal. */
+  padding-top: 34px;
+  padding-bottom: 34px;
 }
-.mega-col { display: flex; flex-direction: column; gap: 3px; }
+
+.mega-col { display: flex; flex-direction: column; }
+
+/* Encabezado de columna: fuente de titulos, tamano de titulo de verdad y
+   una linea que lo separa de sus enlaces. Antes era del mismo cuerpo que
+   el resto y con tanto espaciado que costaba leerlo. */
 .mega-col h4 {
-  font-size: .68rem;
-  font-weight: 800;
-  letter-spacing: .16em;
+  font-family: var(--titulo);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: .05em;
   text-transform: uppercase;
-  color: var(--gris-txt);
-  margin-bottom: 9px;
+  color: var(--negro);
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  border-bottom: 2px solid var(--negro);
 }
+
 .mega-col a {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  padding: 6px 0;
-  font-size: .88rem;
+  gap: 7px;
+  padding: 7px 0;
+  font-size: .92rem;
   font-weight: 500;
-  border-bottom: 1px solid transparent;
+  line-height: 1.25;
+  color: var(--negro);
   width: fit-content;
+  transition: color .14s, transform .14s;
 }
-.mega-col a:hover { color: var(--lima-osc); border-bottom-color: var(--lima); }
+.mega-col a:hover { color: var(--lima-osc); transform: translateX(3px); }
 .mega-col a em {
   font-style: normal;
-  font-size: .72rem;
+  font-size: .7rem;
+  font-weight: 600;
   color: var(--gris-txt);
+  background: var(--gris-bg);
+  padding: 1px 6px;
+  border-radius: 999px;
 }
 
-.mega-todo { justify-content: center; }
+.mega-todo { justify-content: flex-start; }
 .mega-todo a {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
   width: 100%;
-  padding: 18px 20px;
+  padding: 20px 22px;
   background: var(--negro);
   color: var(--blanco);
   border-radius: var(--radio);
   font-family: var(--titulo);
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 700;
+  line-height: 1.05;
   text-transform: uppercase;
-  border-bottom: 0;
+  transition: background .16s, color .16s;
 }
-.mega-todo a:hover { background: var(--lima); color: var(--negro); }
+.mega-todo a:hover { background: var(--lima); color: var(--negro); transform: none; }
 .mega-todo a span {
   font-family: var(--fuente);
-  font-size: .74rem;
+  font-size: .76rem;
   font-weight: 500;
   text-transform: none;
-  opacity: .7;
+  letter-spacing: 0;
+  opacity: .68;
 }
 
 @media (max-width: 1100px) {
-  .mega-int { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .mega-int { grid-template-columns: repeat(2, 1fr); gap: 26px; }
   .mega-todo { grid-column: 1 / -1; }
+  .mega-todo a { flex-direction: row; align-items: baseline; gap: 10px; }
 }
 
 
