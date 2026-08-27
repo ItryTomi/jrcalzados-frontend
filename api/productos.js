@@ -8,6 +8,7 @@
 
 import { hayBase } from './_db.js'
 import { guardarProducto, desactivarProducto } from './_catalogo.js'
+import { verificarAdmin } from './_admin.js'
 
 const leerCuerpo = async (req) => {
   if (req.body && typeof req.body === 'object') return req.body
@@ -20,12 +21,6 @@ const leerCuerpo = async (req) => {
   }
 }
 
-const esAdmin = (req) => {
-  const esperado = process.env.ADMIN_TOKEN
-  if (!esperado) return false
-  const enviado = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '')
-  return Boolean(enviado) && enviado === esperado
-}
 
 const texto = (v, max = 120) => String(v ?? '').trim().slice(0, max)
 
@@ -50,7 +45,7 @@ export default async function handler(req, res) {
     res.setHeader('Allow', 'POST, DELETE')
     return res.status(405).json({ error: 'Metodo no permitido' })
   }
-  if (!esAdmin(req)) return res.status(401).json({ error: 'Clave incorrecta' })
+  if (!await verificarAdmin(req)) return res.status(401).json({ error: 'Clave incorrecta' })
   if (!hayBase()) return res.status(503).json({ error: 'Falta configurar DATABASE_URL' })
 
   try {

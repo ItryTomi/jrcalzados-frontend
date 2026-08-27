@@ -9,23 +9,18 @@
 // una sola vez y para esos parametros exactos.
 
 import crypto from 'node:crypto'
+import { verificarAdmin } from './_admin.js'
 
 const CARPETA = 'jr-calzados'
 const PRESET = 'jr-productos'
 
-const esAdmin = (req) => {
-  const esperado = process.env.ADMIN_TOKEN
-  if (!esperado) return false
-  const enviado = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '')
-  return Boolean(enviado) && enviado === esperado
-}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
     return res.status(405).json({ error: 'Metodo no permitido' })
   }
-  if (!esAdmin(req)) return res.status(401).json({ error: 'Clave incorrecta' })
+  if (!await verificarAdmin(req)) return res.status(401).json({ error: 'Clave incorrecta' })
 
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME
   const apiKey = process.env.CLOUDINARY_API_KEY

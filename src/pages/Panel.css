@@ -219,23 +219,55 @@
   .pedido-detalle { grid-template-columns: 1fr; }
 }
 
-.panel-alerta {
-  display: flex;
-  align-items: flex-start;
-  gap: 11px;
-  margin: 0 0 20px;
-  padding: 14px 16px;
-  background: #fff6e5;
-  border: 1px solid #f0d090;
-  border-left: 4px solid #d68b13;
+.panel-clave {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 18px;
+  padding: 7px 13px;
+  background: var(--gris-bg);
+  border: 1px solid var(--gris-borde);
+  border-radius: 999px;
+  color: var(--gris-txt);
+  font-family: inherit;
+  font-size: .76rem;
+  font-weight: 600;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.panel-clave:hover { background: var(--negro); border-color: var(--negro); color: var(--blanco); }
+
+.panel-clave-form {
+  margin-bottom: 20px;
+  padding: 18px 20px;
+  background: var(--gris-bg);
+  border: 1px solid var(--gris-borde);
   border-radius: var(--radio);
-  font-size: .85rem;
+}
+.panel-clave-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.panel-clave-top h3 { font-size: 1.15rem; }
+.panel-clave-top button { background: none; border: 0; padding: 4px; color: var(--gris-txt); }
+.panel-clave-ayuda {
+  margin: 0 0 14px;
+  font-size: .82rem;
+  color: var(--gris-txt);
   line-height: 1.6;
+  max-width: 62ch;
 }
-.panel-alerta svg { color: #d68b13; flex-shrink: 0; margin-top: 2px; }
-.panel-alerta code {
-  background: rgba(13, 13, 13, .07);
-  padding: 1px 5px;
-  border-radius: 3px;
-  font-size: .92em;
+.panel-clave-campos { display: flex; gap: 8px; flex-wrap: wrap; }
+.panel-clave-campos input {
+  flex: 1 1 200px;
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radio);
+  padding: 11px 13px;
+  font-family: inherit;
+  font-size: .9rem;
+  outline: none;
 }
+.panel-clave-campos input:focus { border-color: var(--negro); }
+.panel-clave-campos .btn { padding: 11px 22px; font-size: .74rem; }
+.panel-clave-aviso { margin: 10px 0 0; font-size: .82rem; font-weight: 600; }

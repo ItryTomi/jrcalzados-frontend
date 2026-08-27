@@ -7,13 +7,8 @@
 
 import { hayBase } from './_db.js'
 import { leerCatalogo } from './_catalogo.js'
+import { verificarAdmin } from './_admin.js'
 
-const esAdmin = (req) => {
-  const esperado = process.env.ADMIN_TOKEN
-  if (!esperado) return false
-  const enviado = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '')
-  return Boolean(enviado) && enviado === esperado
-}
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -22,7 +17,7 @@ export default async function handler(req, res) {
   }
 
   const todo = new URL(req.url, 'http://local').searchParams.get('todo')
-  if (todo && !esAdmin(req)) return res.status(401).json({ error: 'Clave incorrecta' })
+  if (todo && !await verificarAdmin(req)) return res.status(401).json({ error: 'Clave incorrecta' })
 
   if (!hayBase()) return res.status(204).end()
 

@@ -59,6 +59,15 @@ export async function asegurarTablas() {
     )
   `
 
+  // Ajustes que el local puede cambiar desde el panel (por ahora, la clave).
+  await sql`
+    CREATE TABLE IF NOT EXISTS config (
+      clave          text PRIMARY KEY,
+      valor          jsonb NOT NULL,
+      actualizado_en timestamptz NOT NULL DEFAULT now()
+    )
+  `
+
   // Stock por variante. Si una variante NO tiene fila, se considera sin
   // control: se puede vender. Asi el sistema queda inerte hasta que el
   // local cargue las cantidades desde el panel.

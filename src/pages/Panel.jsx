@@ -10,7 +10,8 @@ import {
   MessageCircle,
   Package,
   RefreshCw,
-  Truck
+  Truck,
+  X
 } from 'lucide-react'
 import { precioARS } from '../data/productos'
 import { TIENDA } from '../data/tienda'
@@ -64,6 +65,10 @@ export default function Panel() {
   const [abierto, setAbierto] = useState(null)
   const [vista, setVista] = useState('pedidos')
   const [claveDebil, setClaveDebil] = useState(false)
+  const [cambiando, setCambiando] = useState(false)
+  const [nueva, setNueva] = useState('')
+  const [repetir, setRepetir] = useState('')
+  const [avisoClave, setAvisoClave] = useState(null)
 
   // El panel no debe indexarse en buscadores.
   useEffect(() => {
@@ -121,6 +126,27 @@ export default function Panel() {
     }
     setToken('')
     setPedidos([])
+  }
+
+  const cambiarClave = async (e) => {
+    e.preventDefault()
+    setAvisoClave(null)
+    if (nueva !== repetir) return setAvisoClave('Las dos claves no coinciden')
+    if (nueva.length < 8) return setAvisoClave('Tiene que tener al menos 8 caracteres')
+    try {
+      const r = await fetch('/api/clave', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ nueva })
+      })
+      const d = await r.json()
+      if (!r.ok) throw new Error(d.error || 'No se pudo cambiar')
+      // La clave vieja dejo de servir: hay que volver a entrar.
+      setAvisoClave('Listo. Volvé a entrar con la clave nueva.')
+      setTimeout(salir, 1600)
+    } catch (err) {
+      setAvisoClave(err.message)
+    }
   }
 
   const marcar = async (orden, cambios) => {
@@ -228,16 +254,55 @@ export default function Panel() {
           </div>
         </header>
 
-        {claveDebil && (
-          <p className="panel-alerta">
-            <ShieldAlert size={17} />
-            <span>
-              <strong>La clave del panel es insegura.</strong> Desde acá se ven el nombre,
-              el teléfono y la dirección de cada comprador, y se pueden cambiar los precios.
-              Antes de empezar a vender, cambiala en Vercel (variable <code>ADMIN_TOKEN</code>)
-              por una de al menos 16 caracteres y hacé un redeploy.
-            </span>
-          </p>
+        {claveDebil && !cambiando && (
+          <button className="panel-clave" onClick={() => setCambiando(true)}>
+            <ShieldAlert size={15} />
+            Clave insegura — cambiar
+          </button>
+        )}
+
+        {cambiando && (
+          <form className="panel-clave-form" onSubmit={cambiarClave}>
+            <div className="panel-clave-top">
+              <h3>Cambiar la clave del panel</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setCambiando(false)
+                  setNueva('')
+                  setRepetir('')
+                  setAvisoClave(null)
+                }}
+                aria-label="Cerrar"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <p className="panel-clave-ayuda">
+              Desde el panel se ven los datos de cada comprador y se pueden cambiar los
+              precios. Usá al menos 16 caracteres — una frase con guiones sirve y se
+              escribe fácil.
+            </p>
+            <div className="panel-clave-campos">
+              <input
+                type="password"
+                value={nueva}
+                onChange={(e) => setNueva(e.target.value)}
+                placeholder="Clave nueva"
+                autoFocus
+              />
+              <input
+                type="password"
+                value={repetir}
+                onChange={(e) => setRepetir(e.target.value)}
+                placeholder="Repetila"
+              />
+              <button className="btn btn-lima" type="submit">
+                Guardar
+              </button>
+            </div>
+            {avisoClave && <p className="panel-clave-aviso">{avisoClave}</p>}
+          </form>
         )}
 
         {vista === 'stock' && <PanelStock token={token} />}

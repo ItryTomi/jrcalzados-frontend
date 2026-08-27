@@ -2,24 +2,11 @@
 //   GET  /api/pedidos?estado=pagado&limite=100   -> listado
 //   POST /api/pedidos  { orden, envioEstado, seguimiento, notaLocal }
 //
-// Protegido con ADMIN_TOKEN. No es un login con usuarios: alcanza para que
-// solo el local entre, pero conviene rotar el token si se filtra.
+// Protegido con la clave del panel (ver _admin.js). Es una clave compartida,
+// no un login con usuarios, pero el local puede cambiarla desde el panel.
 
 import { hayBase, listarPedidos, actualizarEnvio } from './_db.js'
-
-// Claves que no alcanzan para proteger datos de clientes. Mientras haya
-// alguna de estas puesta, el panel muestra un aviso: "despues la cambio"
-// es de las cosas que no pasan si nada lo recuerda.
-const DEBILES = [
-  'jrcalzados', 'jr calzados', 'jrcalzados2026', 'calzados', 'admin',
-  'administrador', 'clave', 'password', 'contrasena', '1234', '123456',
-  'clave-de-prueba', 'prueba', 'test'
-]
-
-const claveDebil = () => {
-  const t = String(process.env.ADMIN_TOKEN || '')
-  return t.length < 16 || DEBILES.includes(t.toLowerCase())
-}
+import { verificarAdmin, claveActualEsDebil, hayClave } from './_admin.js'
 
 const leerCuerpo = async (req) => {
   if (req.body && typeof req.body === 'object') return req.body
@@ -33,13 +20,8 @@ const leerCuerpo = async (req) => {
 }
 
 export default async function handler(req, res) {
-  const esperado = process.env.ADMIN_TOKEN
-  if (!esperado) return res.status(503).json({ error: 'Falta configurar ADMIN_TOKEN' })
-
-  const enviado = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '')
-  if (!enviado || enviado !== esperado) {
-    return res.status(401).json({ error: 'Clave incorrecta' })
-  }
+  if (!hayClave()) return res.status(503).json({ error: 'Falta configurar ADMIN_TOKEN' })
+  if (!(await verificarAdmin(req))) return res.status(401).json({ error: 'Clave incorrecta' })
 
   if (req.method !== 'GET' && req.method !== 'POST') {
     res.setHeader('Allow', 'GET, POST')
@@ -54,7 +36,9 @@ export default async function handler(req, res) {
       const limite = Math.min(parseInt(params.get('limite'), 10) || 100, 500)
       const estado = params.get('estado') || null
       const pedidos = await listarPedidos({ limite, estado })
-      return res.status(200).json({ total: pedidos.length, pedidos, claveDebil: claveDebil() })
+      return res
+        .status(200)
+        .json({ total: pedidos.length, pedidos, claveDebil: await claveActualEsDebil() })
     }
 
     if (req.method === 'POST') {

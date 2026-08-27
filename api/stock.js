@@ -8,6 +8,7 @@
 // puede vender. El sistema queda inerte hasta que el local cargue cantidades.
 
 import { hayBase, leerDisponibilidad, leerStock, guardarStock } from './_db.js'
+import { verificarAdmin } from './_admin.js'
 
 const leerCuerpo = async (req) => {
   if (req.body && typeof req.body === 'object') return req.body
@@ -20,12 +21,6 @@ const leerCuerpo = async (req) => {
   }
 }
 
-const esAdmin = (req) => {
-  const esperado = process.env.ADMIN_TOKEN
-  if (!esperado) return false
-  const enviado = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '')
-  return Boolean(enviado) && enviado === esperado
-}
 
 export default async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -38,7 +33,7 @@ export default async function handler(req, res) {
 
   // La clave se revisa antes que la base: un pedido de admin sin clave tiene
   // que dar 401, y no contarle a quien pregunta como esta configurado el sitio.
-  if (necesitaClave && !esAdmin(req)) {
+  if (necesitaClave && !await verificarAdmin(req)) {
     return res.status(401).json({ error: 'Clave incorrecta' })
   }
 
