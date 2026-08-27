@@ -143,3 +143,48 @@ export async function actualizarPrecio(id, precio, precioAnterior) {
   `
   return filas[0] ? aProducto(filas[0]) : null
 }
+
+// ---------- Alta y edicion ----------
+
+export async function guardarProducto(p) {
+  await asegurarCatalogo()
+  const sql = db()
+  const filas = await sql`
+    INSERT INTO productos (id, marca, codigo, nombre, genero, tipo, uso, precio,
+                           precio_anterior, talles, colores, consultar_talle,
+                           destacado, nuevo, activo)
+    VALUES (${p.id}, ${p.marca}, ${p.codigo}, ${p.nombre}, ${p.genero}, ${p.tipo},
+            ${p.uso}, ${p.precio}, ${p.precioAnterior},
+            ${JSON.stringify(p.talles)}, ${JSON.stringify(p.colores)},
+            ${p.consultarTalle}, ${p.destacado}, ${p.nuevo}, ${p.activo})
+    ON CONFLICT (id) DO UPDATE SET
+      marca           = EXCLUDED.marca,
+      codigo          = EXCLUDED.codigo,
+      nombre          = EXCLUDED.nombre,
+      genero          = EXCLUDED.genero,
+      tipo            = EXCLUDED.tipo,
+      uso             = EXCLUDED.uso,
+      precio          = EXCLUDED.precio,
+      precio_anterior = EXCLUDED.precio_anterior,
+      talles          = EXCLUDED.talles,
+      colores         = EXCLUDED.colores,
+      consultar_talle = EXCLUDED.consultar_talle,
+      destacado       = EXCLUDED.destacado,
+      nuevo           = EXCLUDED.nuevo,
+      activo          = EXCLUDED.activo,
+      actualizado_en  = now()
+    RETURNING *
+  `
+  return filas[0] ? aProducto(filas[0]) : null
+}
+
+// No se borra: se desactiva. Los pedidos viejos siguen apuntando a el.
+export async function desactivarProducto(id) {
+  await asegurarCatalogo()
+  const sql = db()
+  const filas = await sql`
+    UPDATE productos SET activo = false, actualizado_en = now()
+    WHERE id = ${id} RETURNING id
+  `
+  return filas.length > 0
+}

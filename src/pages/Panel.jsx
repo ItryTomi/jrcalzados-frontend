@@ -3,6 +3,7 @@ import {
   Boxes,
   DollarSign,
   ShieldAlert,
+  Shirt,
   KeyRound,
   ListOrdered,
   LogOut,
@@ -15,6 +16,7 @@ import { precioARS } from '../data/productos'
 import { TIENDA } from '../data/tienda'
 import PanelStock from './PanelStock'
 import PanelPrecios from './PanelPrecios'
+import PanelProductos from './PanelProductos'
 import './Panel.css'
 
 const CLAVE = 'jr-panel-token'
@@ -192,6 +194,12 @@ export default function Panel() {
               >
                 <DollarSign size={16} /> Precios
               </button>
+              <button
+                className={vista === 'productos' ? 'activo' : ''}
+                onClick={() => setVista('productos')}
+              >
+                <Shirt size={16} /> Productos
+              </button>
             </div>
             {vista === 'pedidos' && (
               <p>
@@ -234,6 +242,7 @@ export default function Panel() {
 
         {vista === 'stock' && <PanelStock token={token} />}
         {vista === 'precios' && <PanelPrecios token={token} />}
+        {vista === 'productos' && <PanelProductos token={token} />}
 
         {vista === 'pedidos' && error && <p className="panel-error">{error}</p>}
 

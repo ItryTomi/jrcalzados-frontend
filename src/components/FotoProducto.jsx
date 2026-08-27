@@ -2,6 +2,8 @@
 // un placeholder vectorial con el color del modelo, asi la grilla no
 // queda con huecos.
 
+import { optimizar } from '../utils/imagen'
+
 const aclarar = (hex, f) => {
   const n = parseInt(hex.replace('#', ''), 16)
   const mez = (c) => Math.round(c + (255 - c) * f)
@@ -16,7 +18,7 @@ const oscurecer = (hex, f) => {
 
 export default function FotoProducto({ imagen, colorHex = '#141414', alt = '', className = '' }) {
   if (imagen) {
-    return <img className={className} src={imagen} alt={alt} loading="lazy" />
+    return <img className={className} src={optimizar(imagen)} alt={alt} loading="lazy" />
   }
 
   const cuerpo = colorHex
