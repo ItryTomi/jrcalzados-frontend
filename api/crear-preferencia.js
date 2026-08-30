@@ -246,9 +246,18 @@ export default async function handler(req, res) {
       }
     }
 
-    // Con credenciales de prueba hay que mandar al checkout de sandbox.
+    // Siempre init_point, tambien con credenciales de prueba.
+    //
+    // Antes con un token TEST- mandabamos a sandbox_init_point, que era lo
+    // documentado durante anios. MP dejo de mantener ese entorno: el pago se
+    // procesa, el webhook avisa, pero queda SIEMPRE en pending aunque el
+    // titular diga APRO. Nunca llega a approved, asi que no se puede probar
+    // el circuito completo.
+    //
+    // Con credenciales de prueba el init_point normal ya es entorno de
+    // prueba (la plata es ficticia igual), y ahi si el APRO/OTHE funciona.
     const esPrueba = token.startsWith('TEST-')
-    const url = esPrueba ? data.sandbox_init_point || data.init_point : data.init_point
+    const url = data.init_point
 
     return res.status(200).json({ url, orden, prueba: esPrueba })
   } catch (e) {
