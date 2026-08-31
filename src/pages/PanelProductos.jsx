@@ -53,7 +53,7 @@ const rango = (a, b) => {
 }
 
 export default function PanelProductos({ token }) {
-  const { productos, marcas } = useCatalogo()
+  const { productos, marcas, recargar } = useCatalogo()
   const [elegido, setElegido] = useState(null)
   const [form, setForm] = useState(null)
   const [guardando, setGuardando] = useState(false)
@@ -186,7 +186,7 @@ export default function PanelProductos({ token }) {
         throw new Error(data.error || 'No se pudo guardar')
       }
       setOk(elegido ? 'Producto actualizado' : 'Producto creado')
-      // El catalogo del sitio se refresca al recargar la pagina.
+      await recargar()
     } catch (err) {
       setError(err.message)
     } finally {

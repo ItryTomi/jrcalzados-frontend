@@ -12,7 +12,7 @@ const REDONDEOS = [
 ]
 
 export default function PanelPrecios({ token }) {
-  const { productos, marcas, tipos } = useCatalogo()
+  const { productos, marcas, tipos, recargar } = useCatalogo()
 
   const [porcentaje, setPorcentaje] = useState('')
   const [marca, setMarca] = useState('')
@@ -68,11 +68,15 @@ export default function PanelPrecios({ token }) {
     try {
       const { actualizados } = await pedir({
         accion: 'aplicar',
+        redondeo,
         cambios: cambios.map((c) => ({ id: c.id, nuevo: c.nuevo }))
       })
       setHecho(actualizados)
       setCambios(null)
       setPorcentaje('')
+      // Sin esto la lista sigue mostrando los precios viejos y parece que
+      // el aumento no se aplico.
+      await recargar()
     } catch (err) {
       setError(err.message)
     } finally {
@@ -85,6 +89,7 @@ export default function PanelPrecios({ token }) {
     try {
       await pedir({ accion: 'uno', id, precio: Number(precio) })
       setHecho(1)
+      await recargar()
     } catch (err) {
       setError(err.message)
     }

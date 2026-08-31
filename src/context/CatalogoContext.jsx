@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { PRODUCTOS as DEL_ARCHIVO } from '../data/productos'
 
 // El catalogo del archivo se usa como punto de partida: la pagina pinta
@@ -12,22 +12,30 @@ export function CatalogoProvider({ children }) {
   const [productos, setProductos] = useState(DEL_ARCHIVO)
   const [desdeBase, setDesdeBase] = useState(false)
 
-  useEffect(() => {
-    let vivo = true
-    fetch('/api/catalogo')
+  // `frescos` saltea el cache del CDN. /api/catalogo se cachea 60s con 5
+  // minutos de tolerancia, comodo para el visitante pero veneno para el
+  // panel: el local cambiaba un precio y seguia viendo el viejo, y parecia
+  // que el cambio no se habia guardado.
+  const traer = useCallback((frescos = false) => {
+    const url = frescos ? `/api/catalogo?t=${Date.now()}` : '/api/catalogo'
+    return fetch(url, frescos ? { cache: 'no-store' } : undefined)
       .then((r) => (r.status === 204 ? null : r.json()))
       .then((d) => {
-        if (!vivo || !d?.productos?.length) return
+        if (!d?.productos?.length) return false
         setProductos(d.productos)
         setDesdeBase(true)
+        return true
       })
-      .catch(() => {
-        /* nos quedamos con el del archivo */
-      })
-    return () => {
-      vivo = false
-    }
+      .catch(() => false /* nos quedamos con lo que ya teniamos */)
   }, [])
+
+  useEffect(() => {
+    traer()
+  }, [traer])
+
+  // La llama el panel despues de guardar, para que la pantalla muestre lo
+  // que quedo realmente en la base y no lo que habia al abrir la pagina.
+  const recargar = useCallback(() => traer(true), [traer])
 
   const valor = useMemo(() => {
     const marcas = [...new Set(productos.map((x) => x.marca))].sort()
@@ -41,6 +49,7 @@ export function CatalogoProvider({ children }) {
     return {
       productos,
       desdeBase,
+      recargar,
       marcas,
       tipos,
       usos,
@@ -48,7 +57,7 @@ export function CatalogoProvider({ children }) {
       colores,
       buscar: (id) => productos.find((x) => x.id === id)
     }
-  }, [productos, desdeBase])
+  }, [productos, desdeBase, recargar])
 
   return <CatalogoContext.Provider value={valor}>{children}</CatalogoContext.Provider>
 }
