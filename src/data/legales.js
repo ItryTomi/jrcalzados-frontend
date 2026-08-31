@@ -1,16 +1,20 @@
 // ============================================================
 // TEXTOS LEGALES
 // ------------------------------------------------------------
-// OJO: son borradores armados con lo que habitualmente se pide para
-// vender online en Argentina. NO son un texto revisado por un abogado.
-// Antes de publicar tienen que pasar por el contador o el abogado de JR,
-// y hay que completar los datos marcados con [COMPLETAR].
+// Los datos del titular ya estan cargados y verificados.
+//
+// PENDIENTE: los textos son borradores armados con lo que habitualmente se
+// pide para vender online en Argentina. NO estan revisados por un abogado.
+// Antes de vender en serio tienen que pasar por el contador o el abogado
+// de JR Calzados.
 // ============================================================
 
 import { TIENDA } from './tienda.js'
 
-export const RAZON_SOCIAL = '[COMPLETAR razon social]'
-export const CUIT = '[COMPLETAR CUIT]'
+// Titular real del negocio. "JR Calzados" es el nombre de fantasia; quien
+// factura y responde legalmente es la persona.
+export const RAZON_SOCIAL = 'Rapetti Alejandro Jorge'
+export const CUIT = '20-30499571-9'
 
 // Formulario oficial de Defensa del Consumidor (ventanilla unica federal).
 export const LINK_DEFENSA_CONSUMIDOR =
