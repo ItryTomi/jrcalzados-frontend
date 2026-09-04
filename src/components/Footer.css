@@ -28,8 +28,15 @@
 .pie-col a:hover { color: var(--lima); }
 
 .pie-marca p { margin: 0; font-size: .86rem; line-height: 1.7; max-width: 42ch; }
-.pie-logo { display: flex; }
-.pie-logo .marca { width: 88px; height: 88px; }
+.pie-logo { display: flex; margin-bottom: 2px; }
+/* Sobre negro el disco blanco necesita medida y aire: a 88px el logo era una
+   mancha y la bajada de adentro no se leia. El aro lima lo apoya en el fondo
+   en vez de dejarlo pegado encima. */
+.pie-logo .marca {
+  width: 104px;
+  height: 104px;
+  box-shadow: 0 0 0 2px rgba(163, 204, 30, .55);
+}
 
 .pie-redes { display: flex; gap: 10px; margin-top: 4px; }
 .pie-redes a {
@@ -74,6 +81,7 @@
 }
 @media (max-width: 560px) {
   .pie-grilla { grid-template-columns: 1fr; }
+  .pie-logo .marca { width: 88px; height: 88px; }
 }
 
 .pie-arrepentimiento { color: var(--lima) !important; font-weight: 600; }

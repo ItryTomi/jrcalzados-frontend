@@ -12,9 +12,10 @@
   height: 100%;
   object-fit: cover;
   display: block;
-  /* El JPG trae un borde negro alrededor del circulo del logo. Se agranda
-     apenas para empujarlo fuera del recorte. */
-  transform: scale(1.07);
+  /* El disco blanco del JPG mide exactamente el ancho de la imagen (1254px):
+     el negro esta solo en las esquinas y el recorte circular ya lo saca. Con
+     este 1.015 se tapa el antialias del borde sin comerse el logo. */
+  transform: scale(1.015);
 }
 .marca-chica { width: 46px; height: 46px; }
 
