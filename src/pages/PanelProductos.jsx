@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Check, Image as IconoImagen, Loader2, Plus, Trash2, X } from 'lucide-react'
+import { Check, Image as IconoImagen, Loader2, Plus, Search, Trash2, X } from 'lucide-react'
 import { precioARS } from '../data/productos'
 import { useCatalogo } from '../context/CatalogoContext'
 import { optimizar } from '../utils/imagen'
@@ -54,6 +54,8 @@ const rango = (a, b) => {
 
 export default function PanelProductos({ token }) {
   const { productos, marcas, recargar } = useCatalogo()
+  const [busca, setBusca] = useState('')
+  const [tipoF, setTipoF] = useState('')
   const [elegido, setElegido] = useState(null)
   const [form, setForm] = useState(null)
   const [guardando, setGuardando] = useState(false)
@@ -213,19 +215,73 @@ export default function PanelProductos({ token }) {
     }
   }
 
-  const lista = useMemo(
-    () => [...productos].sort((a, b) => a.marca.localeCompare(b.marca) || a.nombre.localeCompare(b.nombre)),
-    [productos]
-  )
+  // Buscador de la lista lateral: marca, nombre, codigo o id, mas un filtro
+  // por tipo. Con 30 productos ya cuesta encontrarlos a ojo.
+  const lista = useMemo(() => {
+    const q = busca.trim().toLowerCase()
+    return [...productos]
+      .filter((p) => !tipoF || p.tipo === tipoF)
+      .filter(
+        (p) =>
+          !q ||
+          `${p.marca} ${p.nombre} ${p.codigo || ''} ${p.id}`.toLowerCase().includes(q)
+      )
+      .sort((a, b) => a.marca.localeCompare(b.marca) || a.nombre.localeCompare(b.nombre))
+  }, [productos, busca, tipoF])
 
   if (!form) return null
 
   return (
     <div className="prods">
       <aside className="prods-lista">
-        <button className="prods-nuevo" onClick={() => cargar(null)}>
-          <Plus size={16} /> Producto nuevo
-        </button>
+        <div className="prods-cabecera">
+          <button className="prods-nuevo" onClick={() => cargar(null)}>
+            <Plus size={16} /> Producto nuevo
+          </button>
+
+          <div className="prods-buscar">
+          <Search size={15} />
+          <input
+            type="search"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder="Buscar por nombre, marca o codigo"
+          />
+            {busca && (
+              <button type="button" onClick={() => setBusca('')} aria-label="Limpiar">
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          <div className="prods-tipos">
+            <button
+              type="button"
+              className={tipoF === '' ? 'activo' : ''}
+              onClick={() => setTipoF('')}
+            >
+              Todos
+            </button>
+            {TIPOS.map((t) => (
+              <button
+                key={t}
+                type="button"
+                className={tipoF === t ? 'activo' : ''}
+                onClick={() => setTipoF(t)}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+
+          <p className="prods-cuenta">
+            {lista.length === productos.length
+              ? `${productos.length} productos`
+              : `${lista.length} de ${productos.length}`}
+          </p>
+        </div>
+
+        {lista.length === 0 && <p className="prods-sinnada">No hay productos que coincidan.</p>}
         {lista.map((p) => (
           <button
             key={p.id}

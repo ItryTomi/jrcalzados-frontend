@@ -10,6 +10,7 @@ import {
   MessageCircle,
   Package,
   RefreshCw,
+  Search,
   Truck,
   X
 } from 'lucide-react'
@@ -60,6 +61,8 @@ export default function Panel() {
   const [clave, setClave] = useState('')
   const [pedidos, setPedidos] = useState([])
   const [filtro, setFiltro] = useState('pagado')
+  const [busca, setBusca] = useState('')
+  const [entregaF, setEntregaF] = useState('todas')
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState(null)
   const [abierto, setAbierto] = useState(null)
@@ -173,6 +176,21 @@ export default function Panel() {
     }
   }, [pedidos])
 
+  // Buscador y filtro de entrega sobre los pedidos que ya trajo el servidor.
+  // Busca por numero de orden, nombre, mail o telefono del comprador.
+  const visibles = useMemo(() => {
+    const q = busca.trim().toLowerCase()
+    return pedidos.filter((p) => {
+      const modo = (p.entrega || {}).modo || 'envio'
+      if (entregaF !== 'todas' && modo !== entregaF) return false
+      if (!q) return true
+      const c = p.comprador || {}
+      return `${p.orden} ${c.nombre || ''} ${c.email || ''} ${c.telefono || ''}`
+        .toLowerCase()
+        .includes(q)
+    })
+  }, [pedidos, busca, entregaF])
+
   if (!token) {
     return (
       <div className="panel-login">
@@ -237,11 +255,30 @@ export default function Panel() {
           <div className="panel-acciones">
             {vista === 'pedidos' && (
               <>
+                <div className="panel-buscar">
+                  <Search size={15} />
+                  <input
+                    type="search"
+                    value={busca}
+                    onChange={(e) => setBusca(e.target.value)}
+                    placeholder="Orden, nombre, mail o telefono"
+                  />
+                  {busca && (
+                    <button type="button" onClick={() => setBusca('')} aria-label="Limpiar">
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
                 <select value={filtro} onChange={(e) => setFiltro(e.target.value)}>
                   <option value="pagado">Pagados</option>
                   <option value="pendiente">Pago pendiente</option>
                   <option value="iniciado">Sin pagar</option>
                   <option value="todos">Todos</option>
+                </select>
+                <select value={entregaF} onChange={(e) => setEntregaF(e.target.value)}>
+                  <option value="todas">Envio y retiro</option>
+                  <option value="envio">Solo envios</option>
+                  <option value="retiro">Solo retiros</option>
                 </select>
                 <button className="btn btn-linea" onClick={traer} disabled={cargando}>
                   <RefreshCw size={15} /> {cargando ? 'Actualizando' : 'Actualizar'}
@@ -311,15 +348,19 @@ export default function Panel() {
 
         {vista === 'pedidos' && error && <p className="panel-error">{error}</p>}
 
-        {vista === 'pedidos' && !cargando && pedidos.length === 0 && (
+        {vista === 'pedidos' && !cargando && visibles.length === 0 && (
           <div className="panel-vacio">
             <Package size={44} strokeWidth={1.2} />
-            <p>No hay pedidos con ese filtro.</p>
+            <p>
+              {pedidos.length === 0
+                ? 'No hay pedidos con ese filtro.'
+                : `Ningun pedido coincide con la busqueda (hay ${pedidos.length} en este filtro).`}
+            </p>
           </div>
         )}
 
         <div className="panel-lista">
-          {(vista === 'pedidos' ? pedidos : []).map((p) => {
+          {(vista === 'pedidos' ? visibles : []).map((p) => {
             const pago = ESTADO_PAGO[p.estado] || { txt: p.estado, tono: 'gris' }
             const comprador = p.comprador || {}
             const entrega = p.entrega || {}

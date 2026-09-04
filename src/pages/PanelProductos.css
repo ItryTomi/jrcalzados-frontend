@@ -52,6 +52,93 @@
 }
 .prods-nuevo:hover { background: var(--lima-osc) !important; }
 
+/* ---- Buscador de la lista ----
+   Todo lo de arriba viaja pegado al scroll de la lista: con muchos productos
+   el buscador tiene que seguir a mano. Los <button> de aca adentro pisan la
+   regla generica de .prods-lista button, que los apila a lo ancho. */
+.prods-cabecera {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--blanco);
+  border-bottom: 1px solid var(--gris-borde);
+}
+.prods-cabecera .prods-nuevo { position: static; width: 100%; }
+
+.prods-buscar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 11px;
+  color: var(--gris-txt);
+  border-bottom: 1px solid var(--gris-borde);
+}
+.prods-buscar input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: none;
+  font-family: inherit;
+  font-size: .84rem;
+  color: var(--negro);
+  padding: 2px 0;
+}
+.prods-buscar input::-webkit-search-cancel-button { display: none; }
+.prods-buscar > button {
+  flex: none !important;
+  width: auto !important;
+  padding: 2px !important;
+  border: 0 !important;
+  background: none !important;
+  color: var(--gris-txt);
+  display: grid !important;
+  place-items: center;
+}
+.prods-buscar > button:hover { color: var(--negro); background: none !important; }
+
+.prods-tipos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 9px 11px 4px;
+}
+.prods-tipos button {
+  flex: none !important;
+  width: auto !important;
+  flex-direction: row !important;
+  padding: 4px 10px !important;
+  border: 1px solid var(--gris-borde) !important;
+  border-radius: 999px;
+  background: var(--blanco) !important;
+  color: var(--gris-txt);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+.prods-tipos button:hover { border-color: var(--negro) !important; color: var(--negro); }
+.prods-tipos button.activo {
+  background: var(--negro) !important;
+  border-color: var(--negro) !important;
+  color: var(--blanco);
+}
+
+.prods-cuenta {
+  margin: 0;
+  padding: 6px 11px 9px;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--gris-txt);
+}
+.prods-sinnada {
+  margin: 0;
+  padding: 18px 13px;
+  font-size: .82rem;
+  color: var(--gris-txt);
+}
+
 /* ---- Formulario ---- */
 .prods-form {
   border: 1px solid var(--gris-borde);
