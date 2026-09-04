@@ -19,6 +19,17 @@ function IrArriba() {
   const { pathname } = useLocation()
   useEffect(() => {
     window.scrollTo({ top: 0 })
+
+    // Canonica por pagina. El index.html es el mismo para todas las rutas,
+    // asi que si la dejaramos fija Google leeria que todo el sitio es la
+    // home. Se actualiza en cada navegacion.
+    let canon = document.querySelector('link[rel="canonical"]')
+    if (!canon) {
+      canon = document.createElement('link')
+      canon.rel = 'canonical'
+      document.head.appendChild(canon)
+    }
+    canon.href = `${window.location.origin}${pathname}`
   }, [pathname])
   return null
 }

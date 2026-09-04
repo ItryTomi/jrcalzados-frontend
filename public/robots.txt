@@ -3,3 +3,5 @@ Disallow: /panel
 Disallow: /checkout
 Disallow: /pago/
 Disallow: /api/
+
+Sitemap: https://www.jrcalzados.com/sitemap.xml
