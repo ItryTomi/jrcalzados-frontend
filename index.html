@@ -2,11 +2,61 @@
 <html lang="es-AR">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/logo.png" />
+    <!-- Iconos sacados del logo real, con las esquinas negras recortadas.
+         Antes esto apuntaba a /logo.png, que no existe: por el rewrite del
+         SPA devolvia el HTML y el icono quedaba roto en la pestana y en
+         Google. El favicon.ico en la raiz es el que buscan por defecto
+         tanto los navegadores viejos como el rastreador de Google. -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
+    <link rel="apple-touch-icon" href="/favicon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0d0d0d" />
     <meta name="description" content="JR Calzados - Zapatillas deportivas en San Francisco, Cordoba. Running, training, urbanas. Las mejores marcas con envio a todo el pais." />
     <title>JR Calzados | Zapatillas deportivas - San Francisco, Cordoba</title>
+    <!-- Vista previa al compartir el link por WhatsApp, Instagram o Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="JR Calzados" />
+    <meta property="og:title" content="JR Calzados | Zapatillas y calzado en San Francisco, Cordoba" />
+    <meta property="og:description" content="Zapatillas, sandalias y calzado para toda la familia. Olympikus, Jaguar, Diportto, Gaelle y mas. Envios a todo el pais y retiro sin cargo en el local." />
+    <meta property="og:url" content="https://www.jrcalzados.com/" />
+    <meta property="og:image" content="https://www.jrcalzados.com/logo.jpg" />
+    <meta property="og:locale" content="es_AR" />
+    <meta name="twitter:card" content="summary" />
+
+    <!-- Le dice a Google que esto es una zapateria de San Francisco, Cordoba,
+         y no una web cualquiera. Es lo que alimenta la ficha del costado. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "ShoeStore",
+        "name": "JR Calzados",
+        "description": "Zapatillas, sandalias y calzado deportivo y de confort en San Francisco, Cordoba.",
+        "url": "https://www.jrcalzados.com",
+        "logo": "https://www.jrcalzados.com/logo.jpg",
+        "image": "https://www.jrcalzados.com/logo.jpg",
+        "telephone": "+543564607522",
+        "email": "jrcalzados.sanfco@gmail.com",
+        "priceRange": "$$",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "San Francisco",
+          "addressRegion": "Cordoba",
+          "addressCountry": "AR"
+        },
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+            "opens": "09:00",
+            "closes": "16:00"
+          }
+        ],
+        "sameAs": ["https://www.instagram.com/jrcalzados"]
+      }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
