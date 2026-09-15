@@ -66,8 +66,9 @@ export default function Mayorista() {
 
   const sacar = (n) => setPedido((ps) => ps.filter((_, i) => i !== n))
 
-  const total = pedido.reduce((a, i) => a + i.precio * i.cantidad, 0)
+  const total = pedido.reduce((a, i) => a + (i.precio ?? 0) * i.cantidad, 0)
   const pares = pedido.reduce((a, i) => a + i.cantidad, 0)
+  const aConsultar = pedido.filter((i) => i.precio == null).length
 
   const mensaje = useMemo(() => {
     const quien = comercio.trim()
@@ -75,7 +76,7 @@ export default function Mayorista() {
       (i) =>
         `- ${i.marca} ${i.nombre} | ${i.color} | Talle ${i.talle} | ${i.cantidad} ${
           i.cantidad === 1 ? 'par' : 'pares'
-        } | ${precioARS(i.precio * i.cantidad)}`
+        } | ${i.precio == null ? 'precio a confirmar' : precioARS(i.precio * i.cantidad)}`
     )
     return [
       quien
@@ -84,9 +85,12 @@ export default function Mayorista() {
       '',
       ...lineas,
       '',
-      `Total estimado: ${precioARS(total)} (${pares} ${pares === 1 ? 'par' : 'pares'})`
+      `Total estimado: ${precioARS(total)} (${pares} ${pares === 1 ? 'par' : 'pares'})` +
+        (aConsultar
+          ? `, mas ${aConsultar} ${aConsultar === 1 ? 'modelo' : 'modelos'} con precio a confirmar`
+          : '')
     ].join('\n')
-  }, [pedido, comercio, total, pares])
+  }, [pedido, comercio, total, pares, aConsultar])
 
   if (error) {
     return (
@@ -143,8 +147,7 @@ export default function Mayorista() {
 
       {productos.length === 0 ? (
         <p className="may-vacio">
-          Todavia no hay productos con precio mayorista cargado. Escribinos y te pasamos la
-          lista.
+          Todavia no hay productos cargados. Escribinos y te pasamos la lista.
         </p>
       ) : (
         <p className="may-bajada">
@@ -176,7 +179,9 @@ export default function Mayorista() {
                     {i.color} · Talle {i.talle} · {i.cantidad}u
                   </em>
                 </span>
-                <strong>{precioARS(i.precio * i.cantidad)}</strong>
+                <strong>
+                  {i.precio == null ? 'a confirmar' : precioARS(i.precio * i.cantidad)}
+                </strong>
                 <button onClick={() => sacar(n)} aria-label="Sacar del pedido">
                   <Trash2 size={15} />
                 </button>
@@ -194,6 +199,13 @@ export default function Mayorista() {
           <p className="may-total">
             Total estimado <strong>{precioARS(total)}</strong>
           </p>
+          {aConsultar > 0 && (
+            <p className="may-chico may-nota">
+              {aConsultar === 1
+                ? 'Hay 1 modelo con precio a confirmar, no entra en el total.'
+                : `Hay ${aConsultar} modelos con precio a confirmar, no entran en el total.`}
+            </p>
+          )}
           <a
             className="btn btn-lima"
             href={linkWhatsApp(mensaje)}
@@ -250,7 +262,11 @@ function Fila({ producto, onAgregar }) {
 
       <div className="may-precio">
         <span>Mayorista</span>
-        <strong>{precioARS(precio)}</strong>
+        {precio == null ? (
+          <strong className="may-consultar">A consultar</strong>
+        ) : (
+          <strong>{precioARS(precio)}</strong>
+        )}
       </div>
 
       <div className="may-controles">

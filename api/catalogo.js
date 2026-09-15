@@ -112,10 +112,11 @@ export default async function handler(req, res) {
   // Queda fuera de Google por robots.txt, pero cualquiera con el link entra.
   if (mayorista) {
     try {
-      const todos = await leerCatalogo({ conMayorista: true })
-      // Un producto sin precio mayorista cargado no se ofrece: mostrarlo sin
-      // precio invita a preguntar por algo que el local no definio todavia.
-      const productos = todos.filter((p) => p.precioMayorista != null)
+      // Van TODOS los productos activos, tengan precio mayorista o no. Los que
+      // no lo tienen se muestran como "a consultar": si los escondieramos, un
+      // producto al que se le olvido cargar el precio desapareceria de la lista
+      // sin que nadie se entere, y las dos listas se despegarian solas.
+      const productos = await leerCatalogo({ conMayorista: true })
       res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300')
       return res.status(200).json({ productos })
     } catch (e) {

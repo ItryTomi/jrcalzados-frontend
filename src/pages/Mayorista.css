@@ -135,6 +135,9 @@
   color: var(--lima-osc);
 }
 .may-precio strong { font-size: 1.15rem; }
+/* Producto al que el local todavia no le puso precio mayorista. Se muestra
+   igual: esconderlo dejaria las dos listas despegadas sin que nadie lo note. */
+.may-consultar { font-size: .86rem !important; color: var(--gris-txt); font-weight: 600; }
 
 .may-controles { display: flex; align-items: center; gap: 7px; }
 .may-controles select,
@@ -241,6 +244,7 @@
 }
 .may-total strong { font-size: 1.25rem; color: var(--blanco); }
 .may-pedido .btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.may-nota { color: rgba(255, 255, 255, .6) !important; text-align: left !important; }
 .may-pedido .may-chico {
   color: rgba(255, 255, 255, .5);
   text-align: center;
