@@ -1,9 +1,7 @@
 import { useMemo, useState } from 'react'
-import { Calculator, Check, Store, TrendingUp } from 'lucide-react'
+import { Calculator, Check, Store } from 'lucide-react'
 import { precioARS } from '../data/productos'
 import { useCatalogo } from '../context/CatalogoContext'
-import PanelPreciosMayorista from './PanelPreciosMayorista'
-import './PanelPrecios.css'
 
 const REDONDEOS = [
   { id: 'peso', txt: 'Al peso' },
@@ -12,11 +10,18 @@ const REDONDEOS = [
   { id: 'noventa', txt: 'Terminado en 900' }
 ]
 
-export default function PanelPrecios({ token }) {
-  const { productos, marcas, tipos, recargar } = useCatalogo()
-  const [modo, setModo] = useState('publico')
+// Calculo masivo del precio mayorista.
+//
+// El precio de vidriera sale de sumarle al base el IVA y el margen, asi que
+// para volver al base hay que DIVIDIR por esos porcentajes. Restarlos da un
+// numero distinto y mas bajo: con un par de $111.895, restar 21% y 35% en vez
+// de dividir deja el precio $11.000 abajo.
 
-  const [porcentaje, setPorcentaje] = useState('')
+export default function PanelPreciosMayorista({ token }) {
+  const { marcas, tipos, recargar } = useCatalogo()
+
+  const [iva, setIva] = useState('21')
+  const [margen, setMargen] = useState('35')
   const [marca, setMarca] = useState('')
   const [tipo, setTipo] = useState('')
   const [redondeo, setRedondeo] = useState('centena')
@@ -25,6 +30,13 @@ export default function PanelPrecios({ token }) {
   const [trabajando, setTrabajando] = useState(false)
   const [error, setError] = useState(null)
   const [hecho, setHecho] = useState(null)
+
+  const divisor = useMemo(() => {
+    const a = Number(iva)
+    const b = Number(margen)
+    if (!Number.isFinite(a) || !Number.isFinite(b)) return null
+    return (1 + a / 100) * (1 + b / 100)
+  }, [iva, margen])
 
   const pedir = async (cuerpo) => {
     const r = await fetch('/api/precios', {
@@ -41,21 +53,23 @@ export default function PanelPrecios({ token }) {
     e.preventDefault()
     setError(null)
     setHecho(null)
-    const n = Number(porcentaje)
-    if (!Number.isFinite(n) || n === 0) {
-      setError('Poné un porcentaje distinto de cero')
+
+    const porcentajes = [Number(iva), Number(margen)].filter((n) => Number.isFinite(n) && n > 0)
+    if (porcentajes.length === 0) {
+      setError('Poné al menos un porcentaje mayor a cero')
       return
     }
+
     setTrabajando(true)
     try {
-      const { cambios } = await pedir({
-        accion: 'simular',
-        porcentaje: n,
+      const d = await pedir({
+        accion: 'simular-mayorista',
+        porcentajes,
         marca: marca || null,
         tipo: tipo || null,
         redondeo
       })
-      setCambios(cambios)
+      setCambios(d.cambios)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -64,20 +78,15 @@ export default function PanelPrecios({ token }) {
   }
 
   const aplicar = async () => {
-    if (!cambios?.length) return
     setTrabajando(true)
     setError(null)
     try {
-      const { actualizados } = await pedir({
-        accion: 'aplicar',
-        redondeo,
+      const d = await pedir({
+        accion: 'aplicar-mayorista',
         cambios: cambios.map((c) => ({ id: c.id, nuevo: c.nuevo }))
       })
-      setHecho(actualizados)
+      setHecho(d.actualizados)
       setCambios(null)
-      setPorcentaje('')
-      // Sin esto la lista sigue mostrando los precios viejos y parece que
-      // el aumento no se aplico.
       await recargar()
     } catch (err) {
       setError(err.message)
@@ -86,78 +95,55 @@ export default function PanelPrecios({ token }) {
     }
   }
 
-  const guardarUno = async (id, precio) => {
-    setError(null)
-    try {
-      await pedir({ accion: 'uno', id, precio: Number(precio) })
-      setHecho(1)
-      await recargar()
-    } catch (err) {
-      setError(err.message)
-    }
-  }
-
   const resumen = useMemo(() => {
     if (!cambios?.length) return null
-    const antes = cambios.reduce((a, c) => a + c.actual, 0)
-    const despues = cambios.reduce((a, c) => a + c.nuevo, 0)
-    return { n: cambios.length, antes, despues }
+    return {
+      n: cambios.length,
+      publico: cambios.reduce((a, c) => a + c.actual, 0),
+      mayorista: cambios.reduce((a, c) => a + c.nuevo, 0),
+      pisados: cambios.filter((c) => c.actualMayorista != null).length
+    }
   }, [cambios])
 
-  const solapas = (
-    <div className="precios-modos">
-      <button
-        type="button"
-        className={modo === 'publico' ? 'activo' : ''}
-        onClick={() => setModo('publico')}
-      >
-        <TrendingUp size={15} /> Aumento masivo
-      </button>
-      <button
-        type="button"
-        className={modo === 'mayorista' ? 'activo' : ''}
-        onClick={() => setModo('mayorista')}
-      >
-        <Store size={15} /> Precio mayorista
-      </button>
-    </div>
-  )
-
-  if (modo === 'mayorista') {
-    return (
-      <>
-        {solapas}
-        <PanelPreciosMayorista token={token} />
-      </>
-    )
-  }
-
   return (
-    <>
-    {solapas}
     <div className="precios">
       <section className="precios-form">
         <h2>
-          <TrendingUp size={20} /> Aumento masivo
+          <Store size={20} /> Precio mayorista
         </h2>
         <p className="precios-ayuda">
-          Primero se calcula y te muestro la lista. Nada cambia hasta que confirmes.
+          Le saca al precio de vidriera los porcentajes que se le sumaron. Primero calculo y
+          te muestro la lista: nada cambia hasta que confirmes.
         </p>
 
         <form onSubmit={simular}>
           <label className="campo">
-            Porcentaje
+            IVA
+            <div className="campo-porcentaje">
+              <input type="number" step="0.1" value={iva} onChange={(e) => setIva(e.target.value)} />
+              <span>%</span>
+            </div>
+          </label>
+
+          <label className="campo">
+            Margen
             <div className="campo-porcentaje">
               <input
                 type="number"
                 step="0.1"
-                value={porcentaje}
-                onChange={(e) => setPorcentaje(e.target.value)}
-                placeholder="15"
+                value={margen}
+                onChange={(e) => setMargen(e.target.value)}
               />
               <span>%</span>
             </div>
           </label>
+
+          {divisor && (
+            <p className="precios-ayuda precios-formula">
+              Se divide por <strong>{divisor.toFixed(4)}</strong>. Un par de $100.000 queda en{' '}
+              <strong>{precioARS(Math.round(100000 / divisor))}</strong>.
+            </p>
+          )}
 
           <label className="campo">
             Solo esta marca
@@ -202,7 +188,8 @@ export default function PanelPrecios({ token }) {
         {error && <p className="panel-error">{error}</p>}
         {hecho !== null && (
           <p className="precios-ok">
-            <Check size={15} /> Listo, {hecho} {hecho === 1 ? 'precio actualizado' : 'precios actualizados'}.
+            <Check size={15} /> Listo, {hecho}{' '}
+            {hecho === 1 ? 'precio mayorista cargado' : 'precios mayoristas cargados'}.
           </p>
         )}
       </section>
@@ -214,8 +201,18 @@ export default function PanelPrecios({ token }) {
               <div>
                 <h3>{resumen.n} productos</h3>
                 <p>
-                  {precioARS(resumen.antes)} → <strong>{precioARS(resumen.despues)}</strong>
+                  Vidriera {precioARS(resumen.publico)} → mayorista{' '}
+                  <strong>{precioARS(resumen.mayorista)}</strong>
                 </p>
+                {resumen.pisados > 0 && (
+                  <p className="precios-aviso">
+                    {resumen.pisados}{' '}
+                    {resumen.pisados === 1
+                      ? 'ya tenía precio mayorista y se va a pisar'
+                      : 'ya tenían precio mayorista y se van a pisar'}
+                    .
+                  </p>
+                )}
               </div>
               <div className="precios-confirmar">
                 <button className="btn btn-linea" onClick={() => setCambios(null)}>
@@ -231,7 +228,8 @@ export default function PanelPrecios({ token }) {
               <thead>
                 <tr>
                   <th>Producto</th>
-                  <th>Ahora</th>
+                  <th>Vidriera</th>
+                  <th>Mayorista hoy</th>
                   <th>Queda en</th>
                 </tr>
               </thead>
@@ -243,6 +241,9 @@ export default function PanelPrecios({ token }) {
                       {c.nombre}
                     </td>
                     <td className="viejo">{precioARS(c.actual)}</td>
+                    <td className="viejo">
+                      {c.actualMayorista == null ? '—' : precioARS(c.actualMayorista)}
+                    </td>
                     <td className="nuevo">{precioARS(c.nuevo)}</td>
                   </tr>
                 ))}
@@ -250,44 +251,17 @@ export default function PanelPrecios({ token }) {
             </table>
           </>
         ) : (
-          <>
-            <header className="precios-resumen">
-              <h3>Precios actuales</h3>
-              <p>Podés editar uno suelto: cambiá el número y salí del casillero.</p>
-            </header>
-            <table className="precios-tabla">
-              <thead>
-                <tr>
-                  <th>Producto</th>
-                  <th>Precio</th>
-                </tr>
-              </thead>
-              <tbody>
-                {productos.map((p) => (
-                  <tr key={p.id}>
-                    <td>
-                      <span className="precios-marca">{p.marca}</span>
-                      {p.nombre}
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        min="0"
-                        defaultValue={p.precio}
-                        onBlur={(e) => {
-                          const v = Number(e.target.value)
-                          if (v !== p.precio && v >= 0) guardarUno(p.id, v)
-                        }}
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </>
+          <header className="precios-resumen">
+            <div>
+              <h3>Sin calcular</h3>
+              <p>
+                Elegí los porcentajes y tocá Calcular. Después de aplicarlo podés ajustar
+                cualquier producto a mano desde la pestaña Productos.
+              </p>
+            </div>
+          </header>
         )}
       </section>
     </div>
-    </>
   )
 }

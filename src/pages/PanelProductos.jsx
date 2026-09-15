@@ -27,6 +27,7 @@ const NUEVO = {
   uso: 'Urbano',
   precio: '',
   precioAnterior: '',
+  precioMayorista: '',
   desde: 35,
   hasta: 45,
   consultarTalle: false,
@@ -53,9 +54,35 @@ const rango = (a, b) => {
 }
 
 export default function PanelProductos({ token }) {
-  const { productos, marcas, recargar } = useCatalogo()
+  const { productos: publicos, marcas, recargar } = useCatalogo()
   const [busca, setBusca] = useState('')
   const [tipoF, setTipoF] = useState('')
+  const [estadoF, setEstadoF] = useState('activos')
+
+  // El panel NO puede trabajar con el catalogo publico: ese no trae el precio
+  // mayorista ni los productos desactivados, asi que un producto dado de baja
+  // desaparecia de la lista y no habia forma de volver a entrar a el.
+  const [todos, setTodos] = useState(null)
+
+  const traerTodos = useCallback(async () => {
+    try {
+      const r = await fetch(`/api/catalogo?todo=1&t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (!r.ok) return
+      const d = await r.json()
+      if (Array.isArray(d.productos)) setTodos(d.productos)
+    } catch {
+      /* si falla nos quedamos con el catalogo publico */
+    }
+  }, [token])
+
+  useEffect(() => {
+    traerTodos()
+  }, [traerTodos])
+
+  const productos = todos ?? publicos
   const [elegido, setElegido] = useState(null)
   const [form, setForm] = useState(null)
   const [guardando, setGuardando] = useState(false)
@@ -80,6 +107,7 @@ export default function PanelProductos({ token }) {
         ...p,
         precio: String(p.precio),
         precioAnterior: p.precioAnterior ? String(p.precioAnterior) : '',
+        precioMayorista: p.precioMayorista == null ? '' : String(p.precioMayorista),
         desde: p.talles?.[0] ?? 35,
         hasta: p.talles?.[p.talles.length - 1] ?? 45,
         descripcion: p.descripcion || '',
@@ -175,6 +203,7 @@ export default function PanelProductos({ token }) {
         ...form,
         precio: Number(form.precio),
         precioAnterior: form.precioAnterior === '' ? null : Number(form.precioAnterior),
+        precioMayorista: form.precioMayorista === '' ? null : Number(form.precioMayorista),
         talles: form.consultarTalle ? [] : rango(form.desde, form.hasta)
       }
       const r = await fetch('/api/productos', {
@@ -189,6 +218,7 @@ export default function PanelProductos({ token }) {
       }
       setOk(elegido ? 'Producto actualizado' : 'Producto creado')
       await recargar()
+      await traerTodos()
     } catch (err) {
       setError(err.message)
     } finally {
@@ -220,6 +250,9 @@ export default function PanelProductos({ token }) {
   const lista = useMemo(() => {
     const q = busca.trim().toLowerCase()
     return [...productos]
+      .filter((p) =>
+        estadoF === 'todos' ? true : estadoF === 'inactivos' ? !p.activo : p.activo !== false
+      )
       .filter((p) => !tipoF || p.tipo === tipoF)
       .filter(
         (p) =>
@@ -227,7 +260,7 @@ export default function PanelProductos({ token }) {
           `${p.marca} ${p.nombre} ${p.codigo || ''} ${p.id}`.toLowerCase().includes(q)
       )
       .sort((a, b) => a.marca.localeCompare(b.marca) || a.nombre.localeCompare(b.nombre))
-  }, [productos, busca, tipoF])
+  }, [productos, busca, tipoF, estadoF])
 
   if (!form) return null
 
@@ -274,6 +307,23 @@ export default function PanelProductos({ token }) {
             ))}
           </div>
 
+          <div className="prods-tipos prods-estados">
+            {[
+              ['activos', 'Activos'],
+              ['inactivos', 'Desactivados'],
+              ['todos', 'Todos']
+            ].map(([id, txt]) => (
+              <button
+                key={id}
+                type="button"
+                className={estadoF === id ? 'activo' : ''}
+                onClick={() => setEstadoF(id)}
+              >
+                {txt}
+              </button>
+            ))}
+          </div>
+
           <p className="prods-cuenta">
             {lista.length === productos.length
               ? `${productos.length} productos`
@@ -288,9 +338,17 @@ export default function PanelProductos({ token }) {
             className={p.id === elegido ? 'activo' : ''}
             onClick={() => cargar(p)}
           >
-            <span className="prods-marca">{p.marca}</span>
+            <span className="prods-marca">
+              {p.marca}
+              {p.activo === false && <b className="prods-baja">desactivado</b>}
+            </span>
             <span className="prods-nombre">{p.nombre}</span>
-            <em>{precioARS(p.precio)}</em>
+            <em>
+              {precioARS(p.precio)}
+              {p.precioMayorista != null && (
+                <i className="prods-may">May {precioARS(p.precioMayorista)}</i>
+              )}
+            </em>
           </button>
         ))}
       </aside>
@@ -378,6 +436,19 @@ export default function PanelProductos({ token }) {
               value={form.precioAnterior}
               onChange={(e) => set('precioAnterior', e.target.value)}
             />
+          </label>
+
+          <label className="campo campo-mayorista">
+            Precio mayorista <span className="opcional">(solo lo ven los mayoristas)</span>
+            <input
+              type="number"
+              min="0"
+              value={form.precioMayorista}
+              onChange={(e) => set('precioMayorista', e.target.value)}
+            />
+            <small>
+              Si lo dejas vacio, el producto no aparece en el catalogo mayorista.
+            </small>
           </label>
 
           <label className="campo">

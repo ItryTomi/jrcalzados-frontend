@@ -139,6 +139,39 @@
   color: var(--gris-txt);
 }
 
+.prods-estados { padding-top: 0; }
+
+/* Un producto desactivado no se ve en la web: si no se avisa, el local lo
+   edita sin entender por que no aparece. */
+.prods-baja {
+  margin-left: 7px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: #fdecea;
+  color: #8c1d13;
+  font-size: .92em;
+}
+.prods-lista button.activo .prods-baja { background: #8c1d13; color: #fff; }
+
+.prods-may {
+  display: block;
+  margin-top: 2px;
+  font-style: normal;
+  font-size: .92em;
+  font-weight: 700;
+  color: var(--lima-osc, #7fa314);
+}
+.prods-lista button.activo .prods-may { color: var(--lima); }
+
+/* Destaca que este precio no lo ve el publico. */
+.campo-mayorista small {
+  display: block;
+  margin-top: 4px;
+  font-size: .72rem;
+  font-weight: 500;
+  color: var(--gris-txt);
+}
+
 /* ---- Formulario ---- */
 .prods-form {
   border: 1px solid var(--gris-borde);

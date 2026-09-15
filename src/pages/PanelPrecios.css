@@ -1,3 +1,33 @@
+.precios-modos {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.precios-modos button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 15px;
+  border: 1px solid var(--gris-borde);
+  border-radius: 999px;
+  background: var(--blanco);
+  color: var(--gris-txt);
+  font-family: inherit;
+  font-size: .76rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+.precios-modos button:hover { border-color: var(--negro); color: var(--negro); }
+.precios-modos button.activo {
+  background: var(--negro);
+  border-color: var(--negro);
+  color: var(--blanco);
+}
+
+/* La formula a la vista: que se vea por cuanto se divide antes de calcular. */
+.precios-formula { background: var(--gris-bg); padding: 9px 11px; border-radius: var(--radio); }
+.precios-aviso { color: #8a5c00; font-size: .78rem; margin-top: 4px !important; }
+
 .precios { display: grid; grid-template-columns: 320px 1fr; gap: 22px; align-items: start; }
 
 /* ---- Formulario ---- */

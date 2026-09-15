@@ -22,7 +22,12 @@ export default async function handler(req, res) {
   if (!hayBase()) return res.status(204).end()
 
   try {
-    const productos = await leerCatalogo({ incluirInactivos: Boolean(todo) })
+    // En modo admin viaja tambien el precio mayorista: es la pantalla donde
+    // el local lo carga. Ese modo ya exige clave, tres lineas mas arriba.
+    const productos = await leerCatalogo({
+      incluirInactivos: Boolean(todo),
+      conMayorista: Boolean(todo)
+    })
     if (!todo) {
       res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300')
     }

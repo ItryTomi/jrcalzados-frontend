@@ -38,6 +38,10 @@ export async function asegurarCatalogo() {
   // ALTER y no dentro del CREATE: las bases que ya existen no se recrean.
   await sql`ALTER TABLE productos ADD COLUMN IF NOT EXISTS descripcion text`
 
+  // Precio para los clientes mayoristas. Va en NULL mientras el local no lo
+  // cargue: un producto sin precio mayorista no se ofrece en /mayorista.
+  await sql`ALTER TABLE productos ADD COLUMN IF NOT EXISTS precio_mayorista numeric(12,2)`
+
   const hay = await sql`SELECT count(*)::int AS n FROM productos`
   if (hay[0].n === 0) await sembrar()
 
@@ -61,7 +65,13 @@ async function sembrar() {
 }
 
 // Pasa de la forma de la base a la forma que usa el navegador.
-const aProducto = (f) => ({
+// `conMayorista` decide si el precio mayorista viaja o no. Por defecto NO.
+//
+// Esto es lo unico de todo el modulo que no se puede equivocar: el precio
+// mayorista es informacion comercial y no puede salir por /api/catalogo, que
+// es publico. Esconderlo en el navegador no serviria de nada, cualquiera lo
+// ve abriendo el inspector. Se filtra en el servidor y se acabo.
+const aProducto = (f, conMayorista = false) => ({
   id: f.id,
   marca: f.marca,
   codigo: f.codigo || undefined,
@@ -72,6 +82,14 @@ const aProducto = (f) => ({
   descripcion: f.descripcion || '',
   precio: Number(f.precio),
   precioAnterior: f.precio_anterior === null ? null : Number(f.precio_anterior),
+  ...(conMayorista
+    ? {
+        precioMayorista:
+          f.precio_mayorista === null || f.precio_mayorista === undefined
+            ? null
+            : Number(f.precio_mayorista)
+      }
+    : {}),
   talles: f.talles || [],
   colores: f.colores || [],
   consultarTalle: f.consultar_talle,
@@ -80,13 +98,13 @@ const aProducto = (f) => ({
   activo: f.activo
 })
 
-export async function leerCatalogo({ incluirInactivos = false } = {}) {
+export async function leerCatalogo({ incluirInactivos = false, conMayorista = false } = {}) {
   await asegurarCatalogo()
   const sql = db()
   const filas = incluirInactivos
     ? await sql`SELECT * FROM productos ORDER BY orden, nombre`
     : await sql`SELECT * FROM productos WHERE activo ORDER BY orden, nombre`
-  return filas.map(aProducto)
+  return filas.map((f) => aProducto(f, conMayorista))
 }
 
 export async function buscarProductoBase(id) {
@@ -123,6 +141,52 @@ export async function simularAumento({ porcentaje, marca, tipo, redondeo }) {
       nuevo: Math.max(0, redondearA(actual * factor, redondeo))
     }
   })
+}
+
+// ---------- Precio mayorista ----------
+//
+// El precio de venta al publico se arma sumandole al precio base el IVA y el
+// margen. Para volver al base hay que DIVIDIR por esos porcentajes, no
+// restarlos: si al base se le sumo 21% y despues 35%, restarle 21% y 35% al
+// precio final da un numero mas bajo y distinto. Con un par de $111.895 la
+// diferencia entre dividir y restar son $11.000 regalados.
+export async function simularMayorista({ porcentajes, marca, tipo, redondeo }) {
+  await asegurarCatalogo()
+  const sql = db()
+  let filas = await sql`
+    SELECT id, marca, tipo, nombre, precio, precio_mayorista
+    FROM productos WHERE activo ORDER BY marca, nombre
+  `
+  if (marca) filas = filas.filter((f) => f.marca === marca)
+  if (tipo) filas = filas.filter((f) => f.tipo === tipo)
+
+  const divisor = porcentajes.reduce((a, p) => a * (1 + Number(p) / 100), 1)
+
+  return filas.map((f) => {
+    const publico = Number(f.precio)
+    return {
+      id: f.id,
+      marca: f.marca,
+      nombre: f.nombre,
+      actual: publico,
+      actualMayorista: f.precio_mayorista === null ? null : Number(f.precio_mayorista),
+      nuevo: Math.max(0, redondearA(publico / divisor, redondeo))
+    }
+  })
+}
+
+export async function aplicarMayorista(cambios) {
+  await asegurarCatalogo()
+  const sql = db()
+  const consultas = cambios.map(
+    (c) => sql`
+      UPDATE productos
+      SET precio_mayorista = ${c.nuevo}, actualizado_en = now()
+      WHERE id = ${c.id}
+    `
+  )
+  await Promise.all(consultas)
+  return cambios.length
 }
 
 // Sube los precios propios de cada color en la misma proporcion que el del
@@ -188,10 +252,11 @@ export async function guardarProducto(p) {
   const sql = db()
   const filas = await sql`
     INSERT INTO productos (id, marca, codigo, nombre, genero, tipo, uso, descripcion,
-                           precio, precio_anterior, talles, colores, consultar_talle,
-                           destacado, nuevo, activo)
+                           precio, precio_anterior, precio_mayorista, talles, colores,
+                           consultar_talle, destacado, nuevo, activo)
     VALUES (${p.id}, ${p.marca}, ${p.codigo}, ${p.nombre}, ${p.genero}, ${p.tipo},
             ${p.uso}, ${p.descripcion || null}, ${p.precio}, ${p.precioAnterior},
+            ${p.precioMayorista ?? null},
             ${JSON.stringify(p.talles)}, ${JSON.stringify(p.colores)},
             ${p.consultarTalle}, ${p.destacado}, ${p.nuevo}, ${p.activo})
     ON CONFLICT (id) DO UPDATE SET
@@ -204,6 +269,7 @@ export async function guardarProducto(p) {
       descripcion     = EXCLUDED.descripcion,
       precio          = EXCLUDED.precio,
       precio_anterior = EXCLUDED.precio_anterior,
+      precio_mayorista = EXCLUDED.precio_mayorista,
       talles          = EXCLUDED.talles,
       colores         = EXCLUDED.colores,
       consultar_talle = EXCLUDED.consultar_talle,
@@ -213,7 +279,7 @@ export async function guardarProducto(p) {
       actualizado_en  = now()
     RETURNING *
   `
-  return filas[0] ? aProducto(filas[0]) : null
+  return filas[0] ? aProducto(filas[0], true) : null
 }
 
 // No se borra: se desactiva. Los pedidos viejos siguen apuntando a el.

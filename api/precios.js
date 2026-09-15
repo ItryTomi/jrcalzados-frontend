@@ -9,12 +9,22 @@
 //   POST /api/precios  { accion: 'uno', id, precio, precioAnterior? }
 //     -> cambia un producto suelto
 //
+//   POST /api/precios  { accion: 'simular-mayorista', porcentajes, marca?, tipo?, redondeo? }
+//   POST /api/precios  { accion: 'aplicar-mayorista', cambios: [{id, nuevo}] }
+//     -> calcula el precio mayorista sacandole al publico el IVA y el margen
+//
 // El aumento nunca se aplica directo: primero se simula y el panel muestra
 // la lista para revisar. Tocar 32 precios de una es algo que conviene ver
 // antes de confirmar.
 
 import { hayBase } from './_db.js'
-import { simularAumento, aplicarAumento, actualizarPrecio } from './_catalogo.js'
+import {
+  simularAumento,
+  aplicarAumento,
+  actualizarPrecio,
+  simularMayorista,
+  aplicarMayorista
+} from './_catalogo.js'
 import { verificarAdmin } from './_admin.js'
 
 const MAX_PORCENTAJE = 300
@@ -55,6 +65,29 @@ export default async function handler(req, res) {
         redondeo: cuerpo.redondeo || 'peso'
       })
       return res.status(200).json({ cambios })
+    }
+
+    if (accion === 'simular-mayorista') {
+      const porcentajes = Array.isArray(cuerpo.porcentajes) ? cuerpo.porcentajes.map(Number) : []
+      if (!porcentajes.length || porcentajes.some((p) => !Number.isFinite(p) || p <= 0 || p > MAX_PORCENTAJE)) {
+        return res.status(400).json({ error: 'Los porcentajes tienen que ser mayores a cero' })
+      }
+      const cambios = await simularMayorista({
+        porcentajes,
+        marca: cuerpo.marca || null,
+        tipo: cuerpo.tipo || null,
+        redondeo: cuerpo.redondeo || 'peso'
+      })
+      return res.status(200).json({ cambios })
+    }
+
+    if (accion === 'aplicar-mayorista') {
+      const cambios = Array.isArray(cuerpo.cambios) ? cuerpo.cambios : []
+      if (!cambios.length) return res.status(400).json({ error: 'No hay cambios para aplicar' })
+      const n = await aplicarMayorista(
+        cambios.map((c) => ({ id: String(c.id), nuevo: Math.max(0, Number(c.nuevo) || 0) }))
+      )
+      return res.status(200).json({ actualizados: n })
     }
 
     if (accion === 'aplicar') {
