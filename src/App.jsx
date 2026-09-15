@@ -13,6 +13,7 @@ import Legales from './pages/Legales'
 import Arrepentimiento from './pages/Arrepentimiento'
 import Panel from './pages/Panel'
 import MiCuenta from './pages/MiCuenta'
+import Mayorista from './pages/Mayorista'
 import PagoResultado from './pages/PagoResultado'
 
 function IrArriba() {
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="/arrepentimiento" element={<Arrepentimiento />} />
           <Route path="/panel" element={<Panel />} />
           <Route path="/mi-cuenta" element={<MiCuenta />} />
+          <Route path="/mayorista" element={<Mayorista />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </main>

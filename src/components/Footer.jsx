@@ -51,6 +51,9 @@ export default function Footer() {
             Boton de arrepentimiento
           </Link>
           <Link to="/contacto">Contacto</Link>
+          <Link to="/mayorista" className="pie-mayorista">
+            Acceso mayorista
+          </Link>
         </div>
 
         <div className="pie-col">

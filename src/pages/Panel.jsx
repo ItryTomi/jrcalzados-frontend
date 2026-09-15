@@ -11,6 +11,7 @@ import {
   Package,
   RefreshCw,
   Search,
+  Store,
   Truck,
   X
 } from 'lucide-react'
@@ -19,6 +20,7 @@ import { TIENDA } from '../data/tienda'
 import PanelStock from './PanelStock'
 import PanelPrecios from './PanelPrecios'
 import PanelProductos from './PanelProductos'
+import PanelMayoristas from './PanelMayoristas'
 import './Panel.css'
 
 const CLAVE = 'jr-panel-token'
@@ -244,6 +246,12 @@ export default function Panel() {
               >
                 <Shirt size={16} /> Productos
               </button>
+              <button
+                className={vista === 'mayoristas' ? 'activo' : ''}
+                onClick={() => setVista('mayoristas')}
+              >
+                <Store size={16} /> Mayoristas
+              </button>
             </div>
             {vista === 'pedidos' && (
               <p>
@@ -345,6 +353,7 @@ export default function Panel() {
         {vista === 'stock' && <PanelStock token={token} />}
         {vista === 'precios' && <PanelPrecios token={token} />}
         {vista === 'productos' && <PanelProductos token={token} />}
+        {vista === 'mayoristas' && <PanelMayoristas token={token} />}
 
         {vista === 'pedidos' && error && <p className="panel-error">{error}</p>}
 
