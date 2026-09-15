@@ -3,8 +3,9 @@
 //   GET /api/catalogo                -> productos activos, publico
 //   GET /api/catalogo?todo=1         -> admin: incluye desactivados y el
 //                                       precio mayorista. Exige clave.
-//   GET /api/catalogo?mayorista=1    -> comercios aprobados: con precio
-//                                       mayorista. Exige cuenta habilitada.
+//   GET /api/catalogo?mayorista=1    -> con precio mayorista, para la lista
+//                                       de comercios. Decision del local:
+//                                       va sin clave.
 //   GET /api/catalogo?formato=xml    -> el sitemap. Se sirve en /sitemap.xml
 //                                       por el rewrite de vercel.json.
 //
@@ -18,7 +19,6 @@ import { PRODUCTOS } from '../src/data/productos.js'
 import { hayBase } from './_db.js'
 import { leerCatalogo } from './_catalogo.js'
 import { verificarAdmin } from './_admin.js'
-import { mayoristaAprobado } from './_mayoristas.js'
 
 // ---------- Sitemap ----------
 
@@ -107,21 +107,17 @@ export default async function handler(req, res) {
     return res.status(204).end()
   }
 
-  // El precio mayorista solo viaja si quien pregunta tiene con que. Se filtra
-  // aca, en el servidor: esconderlo en el navegador no serviria de nada.
+  // Lista mayorista. Va sin clave por decision del local (2026-09-15): se
+  // prioriza que el comercio entre y vea los precios sin ningun tramite.
+  // Queda fuera de Google por robots.txt, pero cualquiera con el link entra.
   if (mayorista) {
-    const comercio = await mayoristaAprobado(req)
-    if (!comercio) {
-      return res.status(403).json({ error: 'Tu cuenta todavia no esta habilitada' })
-    }
     try {
       const todos = await leerCatalogo({ conMayorista: true })
       // Un producto sin precio mayorista cargado no se ofrece: mostrarlo sin
       // precio invita a preguntar por algo que el local no definio todavia.
       const productos = todos.filter((p) => p.precioMayorista != null)
-      // Nunca cachear: la respuesta depende de quien pregunta.
-      res.setHeader('Cache-Control', 'private, no-store')
-      return res.status(200).json({ productos, mayorista: { comercio: comercio.comercio } })
+      res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300')
+      return res.status(200).json({ productos })
     } catch (e) {
       console.error('[catalogo mayorista]', e)
       return res.status(500).json({ error: 'No se pudo leer el catalogo' })

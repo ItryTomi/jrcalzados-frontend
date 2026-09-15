@@ -4,7 +4,7 @@
   padding: 34px 20px 80px;
 }
 
-/* Las pantallas de puerta cerrada: sin cuenta, en revision o rechazada. */
+/* Pantallas de aviso: cargando o error al traer la lista. */
 .may-centro {
   max-width: 520px;
   text-align: center;
@@ -23,12 +23,8 @@
 .may-girando { animation: may-giro 1s linear infinite; color: var(--gris-txt); }
 @keyframes may-giro { to { transform: rotate(360deg); } }
 
-/* ---- Solicitud ---- */
-.may-form { max-width: 470px; }
-.may-form h1 { font-size: 2rem; margin: 0 0 6px; }
+
 .may-bajada { color: var(--gris-txt); font-size: .9rem; line-height: 1.6; margin: 0 0 24px; }
-.may-form form { display: flex; flex-direction: column; gap: 15px; }
-.may-form .btn { margin-top: 6px; }
 .may-error {
   margin: 0;
   padding: 10px 12px;
@@ -221,6 +217,19 @@
   padding: 2px;
 }
 .may-pedido li button:hover { color: #ff6b5e; }
+
+.may-comercio {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, .22);
+  border-radius: var(--radio);
+  background: rgba(255, 255, 255, .06);
+  color: var(--blanco);
+  font-family: inherit;
+  font-size: .82rem;
+  padding: 9px 11px;
+  margin-bottom: 12px;
+}
+.may-comercio::placeholder { color: rgba(255, 255, 255, .4); }
 
 .may-total {
   display: flex;

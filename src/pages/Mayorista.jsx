@@ -1,239 +1,31 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { SignInButton } from '@clerk/clerk-react'
-import { Check, Clock, Loader2, Lock, MessageCircle, Plus, Search, Trash2 } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Check, Loader2, MessageCircle, Plus, Search, Trash2 } from 'lucide-react'
 import { precioARS } from '../data/productos'
 import { TIENDA, linkWhatsApp } from '../data/tienda'
-import { hayCuentas, useCuenta } from '../context/AuthContext'
 import FotoProducto from '../components/FotoProducto'
 import './Mayorista.css'
 
-// Catalogo mayorista.
+// Lista mayorista.
 //
 // Es la misma tienda con otros precios y sin pasarela de pago: el pedido se
-// cierra por WhatsApp. Los precios NO salen del catalogo publico, sino de
-// /api/catalogo-mayorista, que solo responde a cuentas que el local aprobo.
+// cierra por WhatsApp. Va sin clave por decision del local (2026-09-15): se
+// prioriza que el comercio entre y vea los precios sin ningun tramite. Queda
+// fuera de Google por robots.txt, pero cualquiera con el link la ve.
 
 export default function Mayorista() {
-  const { cargando, entrado, usuario, token } = useCuenta()
-  // undefined = todavia no preguntamos; null = no tiene solicitud
-  const [solicitud, setSolicitud] = useState(undefined)
-
-  const traerSolicitud = useCallback(async () => {
-    try {
-      const t = await token()
-      const r = await fetch('/api/mayoristas?mia=1', {
-        headers: { Authorization: `Bearer ${t}` }
-      })
-      const d = await r.json()
-      setSolicitud(r.ok ? d.solicitud : null)
-    } catch {
-      setSolicitud(null)
-    }
-  }, [token])
-
-  useEffect(() => {
-    if (entrado) traerSolicitud()
-  }, [entrado, traerSolicitud])
-
-  if (!hayCuentas) return <SinCuentas />
-  if (cargando) return <Cargando />
-  if (!entrado) return <Portada />
-  if (solicitud === undefined) return <Cargando />
-  if (!solicitud) return <Formulario usuario={usuario} token={token} onListo={setSolicitud} />
-  if (solicitud.estado === 'pendiente') return <EnRevision />
-  if (solicitud.estado === 'rechazado') return <Rechazada />
-  return <Catalogo solicitud={solicitud} token={token} />
-}
-
-// ---------------------------------------------------------------- pantallas
-
-const Cargando = () => (
-  <div className="may may-centro">
-    <Loader2 className="may-girando" size={30} />
-  </div>
-)
-
-const SinCuentas = () => (
-  <div className="may may-centro">
-    <Lock size={40} strokeWidth={1.3} />
-    <h1>Acceso mayorista</h1>
-    <p>El acceso con cuenta todavia no esta disponible. Escribinos y te atendemos igual.</p>
-    <a
-      className="btn btn-lima"
-      href={linkWhatsApp('Hola! Quiero consultar por la lista mayorista.')}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      <MessageCircle size={17} /> Consultar por WhatsApp
-    </a>
-  </div>
-)
-
-const Portada = () => (
-  <div className="may may-centro">
-    <Lock size={40} strokeWidth={1.3} />
-    <h1>Acceso mayorista</h1>
-    <p>
-      Lista de precios para comercios. Ingresa con tu cuenta y pedinos el acceso: lo
-      habilitamos a mano despues de verificar tus datos.
-    </p>
-    <SignInButton mode="modal">
-      <button className="btn btn-negro">Ingresar o crear cuenta</button>
-    </SignInButton>
-    <p className="may-chico">
-      Si ya tenes cuenta en la tienda es la misma, no hace falta crear otra.
-    </p>
-  </div>
-)
-
-const EnRevision = () => (
-  <div className="may may-centro">
-    <Clock size={40} strokeWidth={1.3} />
-    <h1>Tu solicitud esta en revision</h1>
-    <p>
-      Ya recibimos tus datos. Cuando el local los confirme vas a ver la lista mayorista al
-      entrar aca. Si es urgente, escribinos.
-    </p>
-    <a
-      className="btn btn-lima"
-      href={linkWhatsApp('Hola! Mande la solicitud de acceso mayorista y queria consultar por el estado.')}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      <MessageCircle size={17} /> Consultar por WhatsApp
-    </a>
-  </div>
-)
-
-const Rechazada = () => (
-  <div className="may may-centro">
-    <Lock size={40} strokeWidth={1.3} />
-    <h1>Tu cuenta no esta habilitada</h1>
-    <p>Escribinos y lo vemos: puede ser que falte algun dato.</p>
-    <a
-      className="btn btn-lima"
-      href={linkWhatsApp('Hola! Queria consultar por el acceso mayorista.')}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      <MessageCircle size={17} /> Escribir por WhatsApp
-    </a>
-  </div>
-)
-
-// ------------------------------------------------------------- la solicitud
-
-function Formulario({ usuario, token, onListo }) {
-  const [form, setForm] = useState({
-    nombre: [usuario?.nombre, usuario?.apellido].filter(Boolean).join(' '),
-    comercio: '',
-    cuit: '',
-    telefono: usuario?.telefono || '',
-    localidad: '',
-    email: usuario?.email || ''
-  })
-  const [error, setError] = useState(null)
-  const [enviando, setEnviando] = useState(false)
-
-  const set = (campo, valor) => setForm((f) => ({ ...f, [campo]: valor }))
-
-  const enviar = async (e) => {
-    e.preventDefault()
-    setEnviando(true)
-    setError(null)
-    try {
-      const t = await token()
-      const r = await fetch('/api/mayoristas', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
-        body: JSON.stringify(form)
-      })
-      const d = await r.json()
-      if (!r.ok) throw new Error(d.error || 'No se pudo enviar')
-      onListo(d.solicitud)
-    } catch (e2) {
-      setError(e2.message)
-    } finally {
-      setEnviando(false)
-    }
-  }
-
-  return (
-    <div className="may may-form">
-      <h1>Pedir acceso mayorista</h1>
-      <p className="may-bajada">
-        Completa los datos de tu comercio. El local los revisa y te habilita la lista.
-      </p>
-
-      <form onSubmit={enviar}>
-        <label className="campo">
-          Tu nombre
-          <input value={form.nombre} onChange={(e) => set('nombre', e.target.value)} required />
-        </label>
-
-        <label className="campo">
-          Nombre del comercio
-          <input
-            value={form.comercio}
-            onChange={(e) => set('comercio', e.target.value)}
-            placeholder="Calzados San Martin"
-            required
-          />
-        </label>
-
-        <label className="campo">
-          CUIT
-          <input
-            value={form.cuit}
-            onChange={(e) => set('cuit', e.target.value)}
-            placeholder="20-30499571-9"
-            required
-          />
-        </label>
-
-        <label className="campo">
-          Telefono
-          <input
-            value={form.telefono}
-            onChange={(e) => set('telefono', e.target.value)}
-            placeholder="3564 60-7522"
-            required
-          />
-        </label>
-
-        <label className="campo">
-          Localidad <span className="opcional">(opcional)</span>
-          <input value={form.localidad} onChange={(e) => set('localidad', e.target.value)} />
-        </label>
-
-        {error && <p className="may-error">{error}</p>}
-
-        <button className="btn btn-negro" disabled={enviando}>
-          {enviando ? 'Enviando...' : 'Enviar solicitud'}
-        </button>
-      </form>
-    </div>
-  )
-}
-
-// --------------------------------------------------------------- el catalogo
-
-function Catalogo({ solicitud, token }) {
   const [productos, setProductos] = useState(null)
   const [error, setError] = useState(null)
   const [busca, setBusca] = useState('')
   const [marcaF, setMarcaF] = useState('')
   const [pedido, setPedido] = useState([])
+  const [comercio, setComercio] = useState('')
 
   useEffect(() => {
     let vivo = true
 
     const traer = async () => {
       try {
-        const t = await token()
-        const r = await fetch('/api/catalogo?mayorista=1', {
-          headers: { Authorization: `Bearer ${t}` }
-        })
+        const r = await fetch('/api/catalogo?mayorista=1')
         const d = await r.json()
         if (!vivo) return
         if (!r.ok) throw new Error(d.error || 'No se pudo cargar la lista')
@@ -247,7 +39,7 @@ function Catalogo({ solicitud, token }) {
     return () => {
       vivo = false
     }
-  }, [token])
+  }, [])
 
   const marcas = useMemo(
     () => [...new Set((productos || []).map((p) => p.marca))].sort(),
@@ -278,6 +70,7 @@ function Catalogo({ solicitud, token }) {
   const pares = pedido.reduce((a, i) => a + i.cantidad, 0)
 
   const mensaje = useMemo(() => {
+    const quien = comercio.trim()
     const lineas = pedido.map(
       (i) =>
         `- ${i.marca} ${i.nombre} | ${i.color} | Talle ${i.talle} | ${i.cantidad} ${
@@ -285,33 +78,47 @@ function Catalogo({ solicitud, token }) {
         } | ${precioARS(i.precio * i.cantidad)}`
     )
     return [
-      `Hola ${TIENDA.nombre}! Soy ${solicitud.comercio} (CUIT ${solicitud.cuit}).`,
-      'Quiero hacer este pedido mayorista:',
+      quien
+        ? `Hola ${TIENDA.nombre}! Soy ${quien} y quiero hacer este pedido mayorista:`
+        : `Hola ${TIENDA.nombre}! Quiero hacer este pedido mayorista:`,
       '',
       ...lineas,
       '',
       `Total estimado: ${precioARS(total)} (${pares} ${pares === 1 ? 'par' : 'pares'})`
     ].join('\n')
-  }, [pedido, solicitud, total, pares])
+  }, [pedido, comercio, total, pares])
 
   if (error) {
     return (
       <div className="may may-centro">
-        <Lock size={40} strokeWidth={1.3} />
         <h1>No pudimos abrir la lista</h1>
         <p>{error}</p>
+        <a
+          className="btn btn-lima"
+          href={linkWhatsApp('Hola! Quiero consultar por la lista mayorista.')}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <MessageCircle size={17} /> Consultar por WhatsApp
+        </a>
       </div>
     )
   }
 
-  if (!productos) return <Cargando />
+  if (!productos) {
+    return (
+      <div className="may may-centro">
+        <Loader2 className="may-girando" size={30} />
+      </div>
+    )
+  }
 
   return (
     <div className="may">
       <header className="may-top">
         <div>
-          <span className="may-etiqueta">Lista mayorista</span>
-          <h1>{solicitud.comercio}</h1>
+          <span className="may-etiqueta">Precios para comercios</span>
+          <h1>Lista mayorista</h1>
         </div>
         <div className="may-filtros">
           <div className="may-buscar">
@@ -334,10 +141,15 @@ function Catalogo({ solicitud, token }) {
         </div>
       </header>
 
-      {productos.length === 0 && (
+      {productos.length === 0 ? (
         <p className="may-vacio">
           Todavia no hay productos con precio mayorista cargado. Escribinos y te pasamos la
           lista.
+        </p>
+      ) : (
+        <p className="may-bajada">
+          Arma tu pedido y lo cerramos por WhatsApp: te confirmamos disponibilidad, forma de
+          pago y envio.
         </p>
       )}
 
@@ -371,6 +183,14 @@ function Catalogo({ solicitud, token }) {
               </li>
             ))}
           </ul>
+
+          <input
+            className="may-comercio"
+            value={comercio}
+            onChange={(e) => setComercio(e.target.value)}
+            placeholder="Tu comercio (opcional)"
+          />
+
           <p className="may-total">
             Total estimado <strong>{precioARS(total)}</strong>
           </p>
@@ -382,9 +202,7 @@ function Catalogo({ solicitud, token }) {
           >
             <MessageCircle size={17} /> Enviar pedido por WhatsApp
           </a>
-          <p className="may-chico">
-            El pedido se confirma por WhatsApp: te pasamos disponibilidad y forma de pago.
-          </p>
+          <p className="may-chico">El pedido se confirma por WhatsApp. No se paga online.</p>
         </aside>
       )}
     </div>
