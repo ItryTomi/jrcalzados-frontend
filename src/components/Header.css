@@ -1,3 +1,31 @@
+/* Franja del modo mayorista. Las dos listas son la misma web con precios
+   distintos: sin una marca clara, es facil creer que se esta en la otra. */
+.barra-mayorista {
+  background: var(--lima);
+  color: var(--negro);
+}
+.barra-mayorista .contenedor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 7px;
+  padding-bottom: 7px;
+  font-size: .76rem;
+}
+.barra-mayorista strong {
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.barra-mayorista span { opacity: .78; }
+.barra-mayorista a {
+  margin-left: auto;
+  font-weight: 700;
+  text-decoration: underline;
+  color: var(--negro);
+}
+
 .cabecera {
   position: sticky;
   top: 0;

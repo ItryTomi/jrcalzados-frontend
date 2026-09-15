@@ -1,9 +1,15 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, useState } from 'react'
 
 import { precioDe } from '../data/productos'
+import { useCatalogo } from './CatalogoContext'
 
 const CartContext = createContext(null)
+
+// Dos carritos separados. Si compartieran uno, un comercio que estuvo mirando
+// la lista mayorista y despues entra a la tienda normal se llevaria lineas con
+// precio mayorista al checkout de Mercado Pago.
 const CLAVE = 'jr-carrito'
+const CLAVE_MAY = 'jr-carrito-may'
 
 const lineaId = (id, talle, color) => `${id}__${talle}__${color}`
 
@@ -36,6 +42,8 @@ function reducer(estado, accion) {
         }
       ]
     }
+    case 'reemplazar':
+      return accion.lineas
     case 'cantidad':
       return estado.map((l) =>
         l.key === accion.key
@@ -51,9 +59,9 @@ function reducer(estado, accion) {
   }
 }
 
-const inicial = () => {
+const leer = (clave) => {
   try {
-    const guardado = localStorage.getItem(CLAVE)
+    const guardado = localStorage.getItem(clave)
     return guardado ? JSON.parse(guardado) : []
   } catch {
     return []
@@ -61,12 +69,22 @@ const inicial = () => {
 }
 
 export function CartProvider({ children }) {
-  const [lineas, dispatch] = useReducer(reducer, undefined, inicial)
+  const { mayorista } = useCatalogo()
+  const clave = mayorista ? CLAVE_MAY : CLAVE
+
+  const [lineas, dispatch] = useReducer(reducer, undefined, () => leer(CLAVE))
   const [abierto, setAbierto] = useState(false)
 
+  // Al cruzar entre la tienda y el mayorista se cambia de carrito: se guarda
+  // el que estaba y se carga el del otro lado.
   useEffect(() => {
-    localStorage.setItem(CLAVE, JSON.stringify(lineas))
-  }, [lineas])
+    dispatch({ tipo: 'reemplazar', lineas: leer(clave) })
+    setAbierto(false)
+  }, [clave])
+
+  useEffect(() => {
+    localStorage.setItem(clave, JSON.stringify(lineas))
+  }, [lineas, clave])
 
   const valor = useMemo(() => {
     const unidades = lineas.reduce((a, l) => a + l.cantidad, 0)
@@ -76,6 +94,7 @@ export function CartProvider({ children }) {
       unidades,
       subtotal,
       abierto,
+      mayorista,
       abrir: () => setAbierto(true),
       cerrar: () => setAbierto(false),
       agregar: (producto, talle, color, cantidad = 1) => {
@@ -86,7 +105,7 @@ export function CartProvider({ children }) {
       quitar: (key) => dispatch({ tipo: 'quitar', key }),
       vaciar: () => dispatch({ tipo: 'vaciar' })
     }
-  }, [lineas, abierto])
+  }, [lineas, abierto, mayorista])
 
   return <CartContext.Provider value={valor}>{children}</CartContext.Provider>
 }

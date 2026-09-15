@@ -4,6 +4,7 @@ import { MessageCircle } from 'lucide-react'
 import { descuento, precioARS, rangoPrecios, CUOTAS } from '../data/productos'
 import { TIENDA, linkWhatsApp } from '../data/tienda'
 import { useCarrito } from '../context/CartContext'
+import { useCatalogo } from '../context/CatalogoContext'
 import { useAgotados } from '../hooks/useAgotados'
 import FotoProducto from './FotoProducto'
 import './ProductCard.css'
@@ -11,6 +12,9 @@ import './ProductCard.css'
 export default function ProductCard({ producto }) {
   const [color, setColor] = useState(producto.colores[0])
   const { agregar } = useCarrito()
+  // Dentro del mayorista los enlaces tienen que seguir dentro del mayorista:
+  // si no, al entrar a un producto el precio cambia a minorista de golpe.
+  const { base } = useCatalogo()
   const { estaAgotado, quedan } = useAgotados()
   const sinStock =
     !producto.consultarTalle &&
@@ -38,7 +42,7 @@ export default function ProductCard({ producto }) {
   return (
     <article className="tarjeta">
       <div className="tarjeta-figura">
-        <Link to={`/producto/${producto.id}`} aria-label={producto.nombre}>
+        <Link to={`${base}/producto/${producto.id}`} aria-label={producto.nombre}>
           <FotoProducto
             imagen={color.imagen}
             colorHex={color.hex}
@@ -94,7 +98,7 @@ export default function ProductCard({ producto }) {
       <div className="tarjeta-cuerpo">
         <p className="tarjeta-marca">{producto.marca}</p>
         <h3 className="tarjeta-nombre">
-          <Link to={`/producto/${producto.id}`}>{producto.nombre}</Link>
+          <Link to={`${base}/producto/${producto.id}`}>{producto.nombre}</Link>
         </h3>
 
         <div className="tarjeta-precios">
@@ -111,7 +115,7 @@ export default function ProductCard({ producto }) {
           <strong>{CUOTAS} cuotas sin interes</strong> de {precioARS(cuota)}
         </p>
 
-        <Link to={`/producto/${producto.id}`} className="btn btn-negro tarjeta-comprar">
+        <Link to={`${base}/producto/${producto.id}`} className="btn btn-negro tarjeta-comprar">
           Comprar
         </Link>
 

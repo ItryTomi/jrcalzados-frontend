@@ -33,7 +33,9 @@ export default function Catalogo() {
     tipos: TIPOS,
     usos: USOS,
     talles: TODOS_TALLES,
-    colores: COLORES
+    colores: COLORES,
+    base,
+    mayorista
   } = useCatalogo()
   const [params, setParams] = useSearchParams()
   const q = (params.get('q') || '').toLowerCase().trim()
@@ -201,7 +203,7 @@ export default function Catalogo() {
     <div className="catalogo">
       <div className="contenedor">
         <nav className="miga" aria-label="Migas de pan">
-          <Link to="/">Inicio</Link>
+          <Link to={base || '/'}>Inicio</Link>
           <ChevronRight size={13} />
           <span>{titulo}</span>
         </nav>
@@ -236,11 +238,23 @@ export default function Catalogo() {
           <div className="catalogo-resultados">
             {resultado.length === 0 ? (
               <div className="sin-resultados">
-                <h3>No encontramos productos</h3>
-                <p>Proba sacando algun filtro o buscando otro modelo.</p>
-                <button className="btn btn-negro" onClick={limpiar}>
-                  Limpiar filtros
-                </button>
+                {mayorista && PRODUCTOS.length === 0 ? (
+                  <>
+                    {/* En el mayorista, vacio casi nunca significa "no hay
+                        productos": significa que todavia no se cargaron los
+                        precios de lista. */}
+                    <h3>La lista todavia no esta cargada</h3>
+                    <p>Escribinos por WhatsApp y te la pasamos.</p>
+                  </>
+                ) : (
+                  <>
+                    <h3>No encontramos productos</h3>
+                    <p>Proba sacando algun filtro o buscando otro modelo.</p>
+                    <button className="btn btn-negro" onClick={limpiar}>
+                      Limpiar filtros
+                    </button>
+                  </>
+                )}
               </div>
             ) : (
               <>

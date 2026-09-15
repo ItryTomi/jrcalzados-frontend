@@ -12,7 +12,7 @@ import './Producto.css'
 
 export default function Producto() {
   const { id } = useParams()
-  const { productos: PRODUCTOS, buscar } = useCatalogo()
+  const { productos: PRODUCTOS, buscar, base, mayorista } = useCatalogo()
   const producto = buscar(id)
   const { agregar } = useCarrito()
   const { estaAgotado, quedan } = useAgotados()
@@ -31,7 +31,7 @@ export default function Producto() {
     return (
       <div className="contenedor producto-noexiste">
         <h1>No encontramos ese producto</h1>
-        <Link to="/catalogo" className="btn btn-negro">
+        <Link to={`${base}/catalogo`} className="btn btn-negro">
           Volver al catalogo
         </Link>
       </div>
@@ -68,9 +68,9 @@ export default function Producto() {
     <div className="producto">
       <div className="contenedor">
         <nav className="miga" aria-label="Migas de pan">
-          <Link to="/">Inicio</Link>
+          <Link to={base || '/'}>Inicio</Link>
           <ChevronRight size={13} />
-          <Link to={`/catalogo/${producto.tipo === 'Sandalias' ? 'sandalias' : producto.genero}`}>
+          <Link to={`${base}/catalogo/${producto.tipo === 'Sandalias' ? 'sandalias' : producto.genero}`}>
             {producto.tipo === 'Sandalias' ? 'Sandalias' : producto.genero}
           </Link>
           <ChevronRight size={13} />

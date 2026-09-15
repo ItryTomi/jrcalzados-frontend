@@ -8,14 +8,16 @@ import FotoProducto from './FotoProducto'
 import './CartDrawer.css'
 
 export default function CartDrawer() {
-  const { lineas, unidades, subtotal, abierto, cerrar, cambiarCantidad, quitar, vaciar } =
+  const { lineas, unidades, subtotal, abierto, cerrar, cambiarCantidad, quitar, vaciar, mayorista } =
     useCarrito()
   useBloquearScroll(abierto)
 
   if (!abierto) return null
 
   const mensaje = [
-    `Hola ${TIENDA.nombre}! Quiero hacer este pedido:`,
+    mayorista
+      ? `Hola ${TIENDA.nombre}! Quiero hacer este pedido mayorista:`
+      : `Hola ${TIENDA.nombre}! Quiero hacer este pedido:`,
     '',
     ...lineas.map(
       (l) =>
@@ -45,7 +47,7 @@ export default function CartDrawer() {
           <div className="carrito-vacio">
             <ShoppingBag size={46} strokeWidth={1.2} />
             <p>Todavia no agregaste nada.</p>
-            <Link to="/catalogo" className="btn btn-negro" onClick={cerrar}>
+            <Link to={mayorista ? '/mayorista' : '/catalogo'} className="btn btn-negro" onClick={cerrar}>
               Ver catalogo
             </Link>
           </div>
@@ -105,26 +107,47 @@ export default function CartDrawer() {
                 <span>Total</span>
                 <strong>{precioARS(subtotal)}</strong>
               </div>
-              <p className="carrito-cuotas">
-                Hasta {CUOTAS} cuotas sin interes de {precioARS(Math.round(subtotal / CUOTAS))}
-              </p>
+              {/* El pedido mayorista no pasa por Mercado Pago: se cierra por
+                  WhatsApp, que es donde se acuerdan disponibilidad, condiciones
+                  y forma de pago. */}
+              {mayorista ? (
+                <>
+                  <a
+                    className="btn btn-lima btn-bloque"
+                    href={linkWhatsApp(mensaje)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Enviar pedido por WhatsApp
+                  </a>
+                  <p className="carrito-seguro">
+                    Te confirmamos disponibilidad, condiciones y forma de pago.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="carrito-cuotas">
+                    Hasta {CUOTAS} cuotas sin interes de {precioARS(Math.round(subtotal / CUOTAS))}
+                  </p>
 
-              <Link className="btn btn-lima btn-bloque" to="/checkout" onClick={cerrar}>
-                Finalizar compra
-              </Link>
+                  <Link className="btn btn-lima btn-bloque" to="/checkout" onClick={cerrar}>
+                    Finalizar compra
+                  </Link>
 
-              <p className="carrito-seguro">
-                <Lock size={13} /> Pago protegido por Mercado Pago. Tarjetas, debito y billetera.
-              </p>
+                  <p className="carrito-seguro">
+                    <Lock size={13} /> Pago protegido por Mercado Pago. Tarjetas, debito y billetera.
+                  </p>
 
-              <a
-                className="btn btn-linea btn-bloque"
-                href={linkWhatsApp(mensaje)}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Prefiero coordinar por WhatsApp
-              </a>
+                  <a
+                    className="btn btn-linea btn-bloque"
+                    href={linkWhatsApp(mensaje)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Prefiero coordinar por WhatsApp
+                  </a>
+                </>
+              )}
 
               <button className="carrito-vaciar" onClick={vaciar}>
                 Vaciar carrito

@@ -30,7 +30,7 @@ const PUBLICOS = [
 
 export default function Header() {
   const { unidades, abrir } = useCarrito()
-  const { marcas, productos } = useCatalogo()
+  const { marcas, productos, base, mayorista } = useCatalogo()
 
   const menus = useMemo(
     () =>
@@ -89,6 +89,16 @@ export default function Header() {
         <span key={aviso}>{AVISOS[aviso]}</span>
       </div>
 
+      {mayorista && (
+        <div className="barra-mayorista">
+          <div className="contenedor">
+            <strong>Lista mayorista</strong>
+            <span>Precios para comercios · el pedido se cierra por WhatsApp</span>
+            <Link to="/">Ir a la tienda</Link>
+          </div>
+        </div>
+      )}
+
       <div className="barra-principal">
         <div className="contenedor barra-principal-int">
           <button
@@ -99,7 +109,7 @@ export default function Header() {
             <Menu size={24} />
           </button>
 
-          <Link to="/" className="logo-link" aria-label="JR Calzados - Inicio">
+          <Link to={base || '/'} className="logo-link" aria-label="JR Calzados - Inicio">
             <Logo />
           </Link>
 
@@ -136,7 +146,7 @@ export default function Header() {
               onMouseLeave={() => setDesplegable(null)}
             >
               <NavLink
-                to={`/catalogo/${m.id}`}
+                to={`${base}/catalogo/${m.id}`}
                 aria-expanded={desplegable === m.id}
                 className={desplegable === m.id ? 'abierto' : ''}
                 onClick={() => setDesplegable(null)}
@@ -151,7 +161,7 @@ export default function Header() {
                     {m.tipos.map((t) => (
                       <Link
                         key={t}
-                        to={`/catalogo/${m.id}?tipo=${encodeURIComponent(t)}`}
+                        to={`${base}/catalogo/${m.id}?tipo=${encodeURIComponent(t)}`}
                         onClick={() => setDesplegable(null)}
                       >
                         {t} <em>{m.cuenta('tipo', t)}</em>
@@ -164,7 +174,7 @@ export default function Header() {
                     {m.usos.map((u) => (
                       <Link
                         key={u}
-                        to={`/catalogo/${m.id}?uso=${encodeURIComponent(u)}`}
+                        to={`${base}/catalogo/${m.id}?uso=${encodeURIComponent(u)}`}
                         onClick={() => setDesplegable(null)}
                       >
                         {u} <em>{m.cuenta('uso', u)}</em>
@@ -177,7 +187,7 @@ export default function Header() {
                     {m.marcas.map((x) => (
                       <Link
                         key={x}
-                        to={`/catalogo/${m.id}?marca=${encodeURIComponent(x)}`}
+                        to={`${base}/catalogo/${m.id}?marca=${encodeURIComponent(x)}`}
                         onClick={() => setDesplegable(null)}
                       >
                         {x}
@@ -205,7 +215,7 @@ export default function Header() {
               {marcas.map((m) => (
                 <Link
                   key={m}
-                  to={`/catalogo?marca=${encodeURIComponent(m)}`}
+                  to={`${base}/catalogo?marca=${encodeURIComponent(m)}`}
                   onClick={() => setDesplegable(null)}
                 >
                   {m}
@@ -240,11 +250,11 @@ export default function Header() {
               </button>
             </form>
             <nav onClick={() => setMenuAbierto(false)}>
-              <Link to="/catalogo/hombre">Hombre</Link>
-              <Link to="/catalogo/mujer">Mujer</Link>
-              <Link to="/catalogo/ninos">Niños</Link>
-              <Link to="/catalogo/sandalias">Sandalias</Link>
-              <Link to="/catalogo">Ver todo el catalogo</Link>
+              <Link to={`${base}/catalogo/hombre`}>Hombre</Link>
+              <Link to={`${base}/catalogo/mujer`}>Mujer</Link>
+              <Link to={`${base}/catalogo/ninos`}>Niños</Link>
+              <Link to={`${base}/catalogo/sandalias`}>Sandalias</Link>
+              <Link to={`${base}/catalogo`}>Ver todo el catalogo</Link>
               <Link to="/contacto">Contacto</Link>
             </nav>
             <p className="panel-movil-pie">
