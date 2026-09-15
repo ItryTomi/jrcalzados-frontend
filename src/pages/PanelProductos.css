@@ -164,6 +164,7 @@
 .prods-lista button.activo .prods-may { color: var(--lima); }
 
 /* Destaca que este precio no lo ve el publico. */
+.campo small,
 .campo-mayorista small {
   display: block;
   margin-top: 4px;

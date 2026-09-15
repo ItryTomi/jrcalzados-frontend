@@ -38,6 +38,17 @@ const NUEVO = {
   activo: true
 }
 
+// El precio de vidriera sale del mayorista sumandole el IVA y el margen. Se
+// MULTIPLICA por los dos factores; es la cuenta inversa de la que usa el
+// calculo masivo de la pestana Precios, que divide para volver al mayorista.
+export const IVA = 21
+export const MARGEN = 35
+const aMinorista = (mayorista) => {
+  const n = Number(mayorista)
+  if (!Number.isFinite(n) || n <= 0) return ''
+  return String(Math.round(n * (1 + IVA / 100) * (1 + MARGEN / 100)))
+}
+
 // Del 16 (pie de nene) al 48 (pie de adulto grande). Sin este tope, un
 // numero mal tipeado genera decenas de miles de talles y tumba la pagina.
 export const TALLE_MIN = 16
@@ -58,6 +69,10 @@ export default function PanelProductos({ token }) {
   const [busca, setBusca] = useState('')
   const [tipoF, setTipoF] = useState('')
   const [estadoF, setEstadoF] = useState('activos')
+  // Mientras sea true, escribir el precio mayorista recalcula el minorista.
+  // Se apaga en cuanto alguien edita el minorista a mano: a partir de ahi el
+  // numero es una decision del local y no se pisa.
+  const [precioAuto, setPrecioAuto] = useState(true)
 
   // El panel NO puede trabajar con el catalogo publico: ese no trae el precio
   // mayorista ni los productos desactivados, asi que un producto dado de baja
@@ -98,10 +113,12 @@ export default function PanelProductos({ token }) {
       setOk(null)
       if (!p) {
         setElegido(null)
+        setPrecioAuto(true)
         setForm({ ...NUEVO, colores: [{ ...COLOR_VACIO }] })
         return
       }
       setElegido(p.id)
+      setPrecioAuto(false)
       setForm({
         ...NUEVO,
         ...p,
@@ -129,6 +146,22 @@ export default function PanelProductos({ token }) {
   const set = (campo, valor) => {
     setForm((f) => ({ ...f, [campo]: valor }))
     setOk(null)
+  }
+
+  // Cargar el mayorista completa el minorista solo, que es como se cargan los
+  // productos: el local conoce el precio de lista y el de vidriera se deduce.
+  const setMayorista = (valor) => {
+    setOk(null)
+    setForm((f) => ({
+      ...f,
+      precioMayorista: valor,
+      precio: precioAuto && valor !== '' ? aMinorista(valor) : f.precio
+    }))
+  }
+
+  const setMinorista = (valor) => {
+    setPrecioAuto(false)
+    set('precio', valor)
   }
 
   const setColor = (i, campo, valor) =>
@@ -418,14 +451,33 @@ export default function PanelProductos({ token }) {
             <input value={form.codigo || ''} onChange={(e) => set('codigo', e.target.value)} />
           </label>
 
+          <label className="campo campo-mayorista">
+            Precio mayorista <span className="opcional">(solo lo ven los mayoristas)</span>
+            <input
+              type="number"
+              min="0"
+              value={form.precioMayorista}
+              onChange={(e) => setMayorista(e.target.value)}
+            />
+            <small>
+              Al cargarlo se calcula el precio de vidriera. Si lo dejas vacio, el producto
+              no aparece en el catalogo mayorista.
+            </small>
+          </label>
+
           <label className="campo">
-            Precio
+            Precio <span className="opcional">(el que ve el publico)</span>
             <input
               type="number"
               min="0"
               value={form.precio}
-              onChange={(e) => set('precio', e.target.value)}
+              onChange={(e) => setMinorista(e.target.value)}
             />
+            <small>
+              {precioAuto
+                ? `Calculado: mayorista + ${IVA}% de IVA + ${MARGEN}% de margen. Podes pisarlo a mano.`
+                : 'Puesto a mano. Para volver al calculo automatico, salí del producto y volvé a entrar.'}
+            </small>
           </label>
 
           <label className="campo">
@@ -436,19 +488,6 @@ export default function PanelProductos({ token }) {
               value={form.precioAnterior}
               onChange={(e) => set('precioAnterior', e.target.value)}
             />
-          </label>
-
-          <label className="campo campo-mayorista">
-            Precio mayorista <span className="opcional">(solo lo ven los mayoristas)</span>
-            <input
-              type="number"
-              min="0"
-              value={form.precioMayorista}
-              onChange={(e) => set('precioMayorista', e.target.value)}
-            />
-            <small>
-              Si lo dejas vacio, el producto no aparece en el catalogo mayorista.
-            </small>
           </label>
 
           <label className="campo">
