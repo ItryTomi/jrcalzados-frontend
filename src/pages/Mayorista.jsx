@@ -231,7 +231,7 @@ function Catalogo({ solicitud, token }) {
     const traer = async () => {
       try {
         const t = await token()
-        const r = await fetch('/api/catalogo-mayorista', {
+        const r = await fetch('/api/catalogo?mayorista=1', {
           headers: { Authorization: `Bearer ${t}` }
         })
         const d = await r.json()
