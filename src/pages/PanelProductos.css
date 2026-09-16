@@ -123,6 +123,15 @@
   color: var(--blanco);
 }
 
+.prods-aviso {
+  margin: 0;
+  padding: 9px 11px;
+  background: #fff3d6;
+  color: #8a5c00;
+  font-size: .74rem;
+  line-height: 1.5;
+}
+
 .prods-cuenta {
   margin: 0;
   padding: 6px 11px 9px;

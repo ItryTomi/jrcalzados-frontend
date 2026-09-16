@@ -78,6 +78,7 @@ export default function PanelProductos({ token }) {
   // mayorista ni los productos desactivados, asi que un producto dado de baja
   // desaparecia de la lista y no habia forma de volver a entrar a el.
   const [todos, setTodos] = useState(null)
+  const [buscandoTodos, setBuscandoTodos] = useState(true)
 
   const traerTodos = useCallback(async () => {
     try {
@@ -90,6 +91,8 @@ export default function PanelProductos({ token }) {
       if (Array.isArray(d.productos)) setTodos(d.productos)
     } catch {
       /* si falla nos quedamos con el catalogo publico */
+    } finally {
+      setBuscandoTodos(false)
     }
   }, [token])
 
@@ -97,7 +100,12 @@ export default function PanelProductos({ token }) {
     traerTodos()
   }, [traerTodos])
 
-  const productos = todos ?? publicos
+  // Mientras no llegue el catalogo de admin la lista va VACIA, no con el
+  // publico. Ese no trae el precio mayorista ni los desactivados: si alguien
+  // alcanzaba a hacer clic antes, el formulario se llenaba con la version
+  // pobre y el precio mayorista aparecia en blanco aunque estuviera guardado.
+  // Solo se cae al publico si la consulta de admin fallo.
+  const productos = todos ?? (buscandoTodos ? [] : publicos)
   const [elegido, setElegido] = useState(null)
   const [form, setForm] = useState(null)
   const [guardando, setGuardando] = useState(false)
@@ -357,14 +365,25 @@ export default function PanelProductos({ token }) {
             ))}
           </div>
 
-          <p className="prods-cuenta">
+          {!buscandoTodos && todos === null && (
+          <p className="prods-aviso">
+            No se pudo leer el catalogo completo. Estas viendo el catalogo publico: faltan
+            los desactivados y los precios mayoristas. Recarga la pagina.
+          </p>
+        )}
+
+        <p className="prods-cuenta">
             {lista.length === productos.length
               ? `${productos.length} productos`
               : `${lista.length} de ${productos.length}`}
           </p>
         </div>
 
-        {lista.length === 0 && <p className="prods-sinnada">No hay productos que coincidan.</p>}
+        {lista.length === 0 && (
+          <p className="prods-sinnada">
+            {buscandoTodos ? 'Cargando productos...' : 'No hay productos que coincidan.'}
+          </p>
+        )}
         {lista.map((p) => (
           <button
             key={p.id}
