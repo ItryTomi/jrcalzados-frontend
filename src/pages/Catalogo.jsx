@@ -87,8 +87,13 @@ export default function Catalogo() {
       lista = lista.filter((x) => x.colores.some((c) => colores.includes(c.nombre)))
 
     const copia = [...lista]
-    if (orden === 'menor') copia.sort((a, b) => a.precio - b.precio)
-    if (orden === 'mayor') copia.sort((a, b) => b.precio - a.precio)
+    // Los productos sin precio (mayorista sin cargar) van siempre al final,
+    // ordene por mayor o por menor: no tienen lugar en la escala.
+    const alFinal = (v) => (v == null ? 1 : 0)
+    if (orden === 'menor')
+      copia.sort((a, b) => alFinal(a.precio) - alFinal(b.precio) || a.precio - b.precio)
+    if (orden === 'mayor')
+      copia.sort((a, b) => alFinal(a.precio) - alFinal(b.precio) || b.precio - a.precio)
     if (orden === 'nombre') copia.sort((a, b) => a.nombre.localeCompare(b.nombre))
     return copia
   }, [PRODUCTOS, categoria, q, marcas, tipos, usos, talles, colores, orden])

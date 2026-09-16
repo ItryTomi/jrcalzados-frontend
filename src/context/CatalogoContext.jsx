@@ -50,11 +50,11 @@ export function CatalogoProvider({ children }) {
         .then((r) => (r.status === 204 ? null : r.json()))
         .then((d) => {
           if (!d?.productos?.length) return false
-          // Sin precio mayorista cargado no se puede mostrar el producto en la
-          // lista: quedaria una tarjeta con el precio vacio.
-          const lista = mayorista
-            ? d.productos.filter((p) => p.precioMayorista != null).map(aPrecioMayorista)
-            : d.productos
+          // Van TODOS los productos, tengan precio mayorista o no. Al que le
+          // falta se le muestra "a consultar": esconderlo dejaria al mayorista
+          // con un catalogo distinto al de la tienda, y un producto al que se
+          // le olvido cargar el precio desapareceria sin que nadie se entere.
+          const lista = mayorista ? d.productos.map(aPrecioMayorista) : d.productos
           setProductos(lista)
           setDesdeBase(true)
           return true

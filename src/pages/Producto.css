@@ -201,3 +201,6 @@
   border-radius: 50%;
   background: #d68b13;
 }
+
+/* Ficha de un producto sin precio cargado. */
+.precio-grande.precio-consultar { font-size: 1.4rem; color: var(--gris-txt); }

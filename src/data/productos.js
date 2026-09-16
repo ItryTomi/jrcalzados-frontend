@@ -331,7 +331,9 @@ export const descuento = (prod) =>
   prod.precioAnterior ? Math.round((1 - prod.precio / prod.precioAnterior) * 100) : 0
 
 export const precioARS = (n) =>
-  n.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 })
+  n == null
+    ? 'A consultar'
+    : n.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 })
 
 export const rangoTalles = (prod) => {
   if (prod.consultarTalle || !prod.talles.length) return 'Consultar talles'
@@ -373,6 +375,8 @@ export const descripcionDe = (prod, color) =>
 // mostrar "desde $X", porque sino el precio cambia al abrir el producto y
 // eso se lee como un engano.
 export const rangoPrecios = (prod) => {
+  // Un producto sin precio (mayorista sin cargar) no tiene rango que mostrar.
+  if (prod.precio == null) return { min: null, max: null, varia: false }
   const precios = (prod.colores || []).map((c) => precioPropio(c) ?? prod.precio)
   if (!precios.length) return { min: prod.precio, max: prod.precio, varia: false }
   const min = Math.min(...precios)

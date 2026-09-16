@@ -45,7 +45,8 @@ export default function Producto() {
   const off = producto.precioAnterior
     ? Math.round((1 - precio / producto.precioAnterior) * 100)
     : descuento(producto)
-  const cuota = Math.round(precio / CUOTAS)
+  const sinPrecio = precio == null
+  const cuota = sinPrecio ? null : Math.round(precio / CUOTAS)
   const relacionados = PRODUCTOS.filter(
     (x) => x.id !== producto.id && (x.tipo === producto.tipo || x.marca === producto.marca)
   ).slice(0, 4)
@@ -121,14 +122,18 @@ export default function Producto() {
               {producto.precioAnterior && (
                 <span className="precio-viejo">{precioARS(producto.precioAnterior)}</span>
               )}
-              <span className="precio-grande">{precioARS(precio)}</span>
+              <span className={`precio-grande${sinPrecio ? ' precio-consultar' : ''}`}>
+                {precioARS(precio)}
+              </span>
               {off > 0 && <span className="et et-off">{off}% OFF</span>}
             </div>
-            <p className="producto-cuotas">
-              <strong>
-                {CUOTAS} cuotas sin interes de {precioARS(cuota)}
-              </strong>
-            </p>
+            {!sinPrecio && (
+              <p className="producto-cuotas">
+                <strong>
+                  {CUOTAS} cuotas sin interes de {precioARS(cuota)}
+                </strong>
+              </p>
+            )}
 
             {texto && <p className="producto-desc">{texto}</p>}
 
@@ -200,13 +205,15 @@ export default function Producto() {
             )}
 
             <div className="producto-acciones">
-              {!producto.consultarTalle && (
+              {/* Sin precio cargado no se puede agregar al carrito: iria a sumar
+                  cero al total y el comercio creeria que sale gratis. */}
+              {!producto.consultarTalle && !sinPrecio && (
                 <button className="btn btn-lima btn-bloque" onClick={alAgregar}>
                   Agregar al carrito
                 </button>
               )}
               <a
-                className={`btn btn-bloque ${producto.consultarTalle ? 'btn-lima' : 'btn-linea'}`}
+                className={`btn btn-bloque ${producto.consultarTalle || sinPrecio ? 'btn-lima' : 'btn-linea'}`}
                 href={consulta}
                 target="_blank"
                 rel="noopener noreferrer"

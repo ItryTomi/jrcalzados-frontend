@@ -33,7 +33,10 @@ export default function ProductCard({ producto }) {
   // un "desde". Sin eso el precio cambiaria al abrir el producto y parece
   // que le cambiaron el precio en la cara al cliente.
   const { min, varia } = rangoPrecios(producto)
-  const cuota = Math.round(min / CUOTAS)
+  // Producto sin precio cargado: pasa en el mayorista mientras el local no
+  // haya puesto la lista. Se muestra igual, pero no se puede comprar a ciegas.
+  const sinPrecio = min == null
+  const cuota = sinPrecio ? null : Math.round(min / CUOTAS)
 
   const consulta = linkWhatsApp(
     `Hola ${TIENDA.nombre}! Queria consultar talles de: ${producto.marca} ${producto.nombre} (${color.nombre})`
@@ -62,7 +65,16 @@ export default function ProductCard({ producto }) {
           )}
         </div>
 
-        {producto.consultarTalle ? (
+        {sinPrecio ? (
+          <a
+            className="tarjeta-rapida tarjeta-consulta"
+            href={consulta}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <MessageCircle size={16} /> Consultar precio
+          </a>
+        ) : producto.consultarTalle ? (
           <a
             className="tarjeta-rapida tarjeta-consulta"
             href={consulta}
@@ -105,19 +117,32 @@ export default function ProductCard({ producto }) {
           {producto.precioAnterior && (
             <span className="precio-viejo">{precioARS(producto.precioAnterior)}</span>
           )}
-          <span className="precio">
+          <span className={`precio${sinPrecio ? ' precio-consultar' : ''}`}>
             {varia && <small className="precio-desde">desde </small>}
             {precioARS(min)}
           </span>
         </div>
 
-        <p className="tarjeta-cuotas">
-          <strong>{CUOTAS} cuotas sin interes</strong> de {precioARS(cuota)}
-        </p>
+        {!sinPrecio && (
+          <p className="tarjeta-cuotas">
+            <strong>{CUOTAS} cuotas sin interes</strong> de {precioARS(cuota)}
+          </p>
+        )}
 
-        <Link to={`${base}/producto/${producto.id}`} className="btn btn-negro tarjeta-comprar">
-          Comprar
-        </Link>
+        {sinPrecio ? (
+          <a
+            className="btn btn-negro tarjeta-comprar"
+            href={consulta}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Consultar
+          </a>
+        ) : (
+          <Link to={`${base}/producto/${producto.id}`} className="btn btn-negro tarjeta-comprar">
+            Comprar
+          </Link>
+        )}
 
         {producto.colores.length > 1 && (
           <div className="tarjeta-colores">

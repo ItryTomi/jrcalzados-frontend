@@ -231,3 +231,7 @@
 }
 
 .et-ultimas { background: #d68b13; color: #fff; }
+
+/* Producto sin precio cargado (pasa en el mayorista hasta que el local pone
+   la lista). Se muestra igual que los demas, pero no se puede comprar. */
+.precio-consultar { font-size: 1rem !important; color: var(--gris-txt); }
