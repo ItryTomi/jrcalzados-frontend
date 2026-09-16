@@ -242,7 +242,7 @@ export async function actualizarPrecio(id, precio, precioAnterior) {
     WHERE id = ${id}
     RETURNING *
   `
-  return filas[0] ? aProducto(filas[0]) : null
+  return filas[0] ? aProducto(filas[0], true) : null
 }
 
 // ---------- Alta y edicion ----------

@@ -70,6 +70,16 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'El precio tiene que ser mayor a cero' })
     }
 
+    // Vacio es valido: significa "este producto todavia no tiene precio de
+    // lista". Lo que no puede pasar es que venga un numero y se pierda.
+    let precioMayorista = null
+    if (producto.precioMayorista !== '' && producto.precioMayorista != null) {
+      precioMayorista = Number(producto.precioMayorista)
+      if (!Number.isFinite(precioMayorista) || precioMayorista <= 0) {
+        return res.status(400).json({ error: 'El precio mayorista tiene que ser mayor a cero' })
+      }
+    }
+
     // OJO: antes aca habia un .filter() que descartaba los colores sin nombre
     // sin decir nada. El local cargaba la foto, guardaba, le salia "listo" y
     // el color desaparecia. Ahora es un error explicito.
@@ -145,6 +155,7 @@ export default async function handler(req, res) {
       uso: texto(producto.uso, 30) || 'Urbano',
       descripcion: texto(producto.descripcion, 1500),
       precio,
+      precioMayorista,
       precioAnterior:
         producto.precioAnterior === '' || producto.precioAnterior == null
           ? null
