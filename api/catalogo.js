@@ -3,9 +3,9 @@
 //   GET /api/catalogo                -> productos activos, publico
 //   GET /api/catalogo?todo=1         -> admin: incluye desactivados y el
 //                                       precio mayorista. Exige clave.
-//   GET /api/catalogo?mayorista=1    -> con precio mayorista, para la lista
-//                                       de comercios. Decision del local:
-//                                       va sin clave.
+//   GET /api/catalogo?mayorista=1    -> catalogo para comercios, SIN precios.
+//                                       Es publico: los precios mayoristas no
+//                                       salen del servidor por esta puerta.
 //   GET /api/catalogo?formato=xml    -> el sitemap. Se sirve en /sitemap.xml
 //                                       por el rewrite de vercel.json.
 //
@@ -107,16 +107,20 @@ export default async function handler(req, res) {
     return res.status(204).end()
   }
 
-  // Lista mayorista. Va sin clave por decision del local (2026-09-15): se
-  // prioriza que el comercio entre y vea los precios sin ningun tramite.
-  // Queda fuera de Google por robots.txt, pero cualquiera con el link entra.
+  // Catalogo para comercios: los mismos productos que la tienda, SIN precios.
+  //
+  // La pagina es publica, asi que el precio mayorista NO se manda: se cotiza
+  // por WhatsApp. Aca no hay que filtrar nada en el navegador, directamente no
+  // viaja. El local los administra desde /mayorista/panel, que pide clave.
   if (mayorista) {
     try {
-      // Van TODOS los productos activos, tengan precio mayorista o no. Los que
-      // no lo tienen se muestran como "a consultar": si los escondieramos, un
-      // producto al que se le olvido cargar el precio desapareceria de la lista
-      // sin que nadie se entere, y las dos listas se despegarian solas.
-      const productos = await leerCatalogo({ conMayorista: true })
+      const todos = await leerCatalogo()
+      const productos = todos.map(({ precio, precioAnterior, colores, ...resto }) => ({
+        ...resto,
+        precio: null,
+        precioAnterior: null,
+        colores: (colores || []).map(({ precio: _p, ...c }) => c)
+      }))
       res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300')
       return res.status(200).json({ productos })
     } catch (e) {

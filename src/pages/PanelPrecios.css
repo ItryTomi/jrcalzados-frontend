@@ -1,3 +1,13 @@
+.precios-nota {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  background: var(--gris-bg);
+  border-radius: var(--radio);
+  font-size: .8rem;
+  color: var(--gris-txt);
+}
+.precios-nota a { color: var(--negro); font-weight: 700; text-decoration: underline; }
+
 .precios-modos {
   display: flex;
   gap: 6px;

@@ -19,14 +19,17 @@ export default function CartDrawer() {
       ? `Hola ${TIENDA.nombre}! Quiero hacer este pedido mayorista:`
       : `Hola ${TIENDA.nombre}! Quiero hacer este pedido:`,
     '',
-    ...lineas.map(
-      (l) =>
-        `- ${l.marca} ${l.nombre} | Talle ${l.talle} | ${l.color} | x${l.cantidad} | ${precioARS(
-          l.precio * l.cantidad
-        )}`
+    ...lineas.map((l) =>
+      mayorista
+        ? `- ${l.marca} ${l.nombre} | Talle ${l.talle} | ${l.color} | x${l.cantidad}`
+        : `- ${l.marca} ${l.nombre} | Talle ${l.talle} | ${l.color} | x${l.cantidad} | ${precioARS(
+            l.precio * l.cantidad
+          )}`
     ),
     '',
-    `Total: ${precioARS(subtotal)}`
+    mayorista
+      ? `Son ${unidades} ${unidades === 1 ? 'par' : 'pares'}. Me pasan precios por favor?`
+      : `Total: ${precioARS(subtotal)}`
   ].join('\n')
 
   return (
@@ -92,7 +95,7 @@ export default function CartDrawer() {
                           <Plus size={14} />
                         </button>
                       </div>
-                      <strong>{precioARS(l.precio * l.cantidad)}</strong>
+                      {!mayorista && <strong>{precioARS(l.precio * l.cantidad)}</strong>}
                     </div>
                   </div>
                   <button className="linea-borrar" onClick={() => quitar(l.key)} aria-label="Quitar">
@@ -103,10 +106,19 @@ export default function CartDrawer() {
             </ul>
 
             <footer className="carrito-pie">
-              <div className="carrito-total">
-                <span>Total</span>
-                <strong>{precioARS(subtotal)}</strong>
-              </div>
+              {mayorista ? (
+                <div className="carrito-total">
+                  <span>Tu pedido</span>
+                  <strong>
+                    {unidades} {unidades === 1 ? 'par' : 'pares'}
+                  </strong>
+                </div>
+              ) : (
+                <div className="carrito-total">
+                  <span>Total</span>
+                  <strong>{precioARS(subtotal)}</strong>
+                </div>
+              )}
               {/* El pedido mayorista no pasa por Mercado Pago: se cierra por
                   WhatsApp, que es donde se acuerdan disponibilidad, condiciones
                   y forma de pago. */}

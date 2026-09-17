@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react'
-import { Calculator, Check, Store, TrendingUp } from 'lucide-react'
+import { Calculator, Check, TrendingUp } from 'lucide-react'
 import { precioARS } from '../data/productos'
 import { useCatalogo } from '../context/CatalogoContext'
-import PanelPreciosMayorista from './PanelPreciosMayorista'
 import './PanelPrecios.css'
 
 const REDONDEOS = [
@@ -14,7 +13,6 @@ const REDONDEOS = [
 
 export default function PanelPrecios({ token }) {
   const { productos, marcas, tipos, recargar } = useCatalogo()
-  const [modo, setModo] = useState('publico')
 
   const [porcentaje, setPorcentaje] = useState('')
   const [marca, setMarca] = useState('')
@@ -104,37 +102,15 @@ export default function PanelPrecios({ token }) {
     return { n: cambios.length, antes, despues }
   }, [cambios])
 
-  const solapas = (
-    <div className="precios-modos">
-      <button
-        type="button"
-        className={modo === 'publico' ? 'activo' : ''}
-        onClick={() => setModo('publico')}
-      >
-        <TrendingUp size={15} /> Aumento masivo
-      </button>
-      <button
-        type="button"
-        className={modo === 'mayorista' ? 'activo' : ''}
-        onClick={() => setModo('mayorista')}
-      >
-        <Store size={15} /> Precio mayorista
-      </button>
-    </div>
-  )
-
-  if (modo === 'mayorista') {
-    return (
-      <>
-        {solapas}
-        <PanelPreciosMayorista token={token} />
-      </>
-    )
-  }
-
   return (
     <>
-    {solapas}
+    <p className="precios-nota">
+      Los precios mayoristas se administran aparte, en{' '}
+      <a href="/mayorista/panel" target="_blank" rel="noopener noreferrer">
+        /mayorista/panel
+      </a>
+      .
+    </p>
     <div className="precios">
       <section className="precios-form">
         <h2>

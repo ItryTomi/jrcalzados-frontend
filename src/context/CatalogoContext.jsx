@@ -8,16 +8,8 @@ import { PRODUCTOS as DEL_ARCHIVO } from '../data/productos'
 // los filtros de talle y marca y el carrito son EXACTAMENTE los mismos: lo
 // unico que cambia es de donde sale el precio. Por eso se pisa aca, en la
 // fuente, y no en cada componente.
-const aPrecioMayorista = (p) => ({
-  ...p,
-  precio: p.precioMayorista,
-  // Un "20% OFF" calculado contra el precio de vidriera no significa nada en
-  // una lista mayorista.
-  precioAnterior: null,
-  // Los precios propios por color son de la lista minorista. Sin esto, la
-  // zapatilla blanca se cobraria al precio de vidriera dentro del mayorista.
-  colores: (p.colores || []).map((c) => ({ ...c, precio: null }))
-})
+// Los precios ya vienen nulos del servidor: /api/catalogo?mayorista=1 no los
+// manda. No hay nada que pisar aca.
 
 // El catalogo del archivo se usa como punto de partida: la pagina pinta
 // completa desde el primer momento, sin pantalla en blanco ni saltos.
@@ -54,7 +46,7 @@ export function CatalogoProvider({ children }) {
           // falta se le muestra "a consultar": esconderlo dejaria al mayorista
           // con un catalogo distinto al de la tienda, y un producto al que se
           // le olvido cargar el precio desapareceria sin que nadie se entere.
-          const lista = mayorista ? d.productos.map(aPrecioMayorista) : d.productos
+          const lista = d.productos
           setProductos(lista)
           setDesdeBase(true)
           return true

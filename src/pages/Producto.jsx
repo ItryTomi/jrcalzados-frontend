@@ -122,9 +122,7 @@ export default function Producto() {
               {producto.precioAnterior && (
                 <span className="precio-viejo">{precioARS(producto.precioAnterior)}</span>
               )}
-              <span className={`precio-grande${sinPrecio ? ' precio-consultar' : ''}`}>
-                {precioARS(precio)}
-              </span>
+              {!sinPrecio && <span className="precio-grande">{precioARS(precio)}</span>}
               {off > 0 && <span className="et et-off">{off}% OFF</span>}
             </div>
             {!sinPrecio && (
@@ -207,7 +205,7 @@ export default function Producto() {
             <div className="producto-acciones">
               {/* Sin precio cargado no se puede agregar al carrito: iria a sumar
                   cero al total y el comercio creeria que sale gratis. */}
-              {!producto.consultarTalle && !sinPrecio && (
+              {!producto.consultarTalle && (!sinPrecio || mayorista) && (
                 <button className="btn btn-lima btn-bloque" onClick={alAgregar}>
                   Agregar al carrito
                 </button>

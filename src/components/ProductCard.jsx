@@ -14,7 +14,7 @@ export default function ProductCard({ producto }) {
   const { agregar } = useCarrito()
   // Dentro del mayorista los enlaces tienen que seguir dentro del mayorista:
   // si no, al entrar a un producto el precio cambia a minorista de golpe.
-  const { base } = useCatalogo()
+  const { base, mayorista } = useCatalogo()
   const { estaAgotado, quedan } = useAgotados()
   const sinStock =
     !producto.consultarTalle &&
@@ -35,6 +35,8 @@ export default function ProductCard({ producto }) {
   const { min, varia } = rangoPrecios(producto)
   // Producto sin precio cargado: pasa en el mayorista mientras el local no
   // haya puesto la lista. Se muestra igual, pero no se puede comprar a ciegas.
+  // En el mayorista NO se publican precios: el comercio arma el pedido y se
+  // cotiza por WhatsApp. Por eso ahi si se puede elegir talle y agregar.
   const sinPrecio = min == null
   const cuota = sinPrecio ? null : Math.round(min / CUOTAS)
 
@@ -65,7 +67,7 @@ export default function ProductCard({ producto }) {
           )}
         </div>
 
-        {sinPrecio ? (
+        {sinPrecio && !mayorista ? (
           <a
             className="tarjeta-rapida tarjeta-consulta"
             href={consulta}
@@ -113,15 +115,17 @@ export default function ProductCard({ producto }) {
           <Link to={`${base}/producto/${producto.id}`}>{producto.nombre}</Link>
         </h3>
 
-        <div className="tarjeta-precios">
-          {producto.precioAnterior && (
-            <span className="precio-viejo">{precioARS(producto.precioAnterior)}</span>
-          )}
-          <span className={`precio${sinPrecio ? ' precio-consultar' : ''}`}>
-            {varia && <small className="precio-desde">desde </small>}
-            {precioARS(min)}
-          </span>
-        </div>
+        {!sinPrecio && (
+          <div className="tarjeta-precios">
+            {producto.precioAnterior && (
+              <span className="precio-viejo">{precioARS(producto.precioAnterior)}</span>
+            )}
+            <span className="precio">
+              {varia && <small className="precio-desde">desde </small>}
+              {precioARS(min)}
+            </span>
+          </div>
+        )}
 
         {!sinPrecio && (
           <p className="tarjeta-cuotas">
@@ -129,7 +133,7 @@ export default function ProductCard({ producto }) {
           </p>
         )}
 
-        {sinPrecio ? (
+        {sinPrecio && !mayorista ? (
           <a
             className="btn btn-negro tarjeta-comprar"
             href={consulta}

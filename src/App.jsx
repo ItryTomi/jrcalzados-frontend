@@ -13,6 +13,7 @@ import Legales from './pages/Legales'
 import Arrepentimiento from './pages/Arrepentimiento'
 import Panel from './pages/Panel'
 import MiCuenta from './pages/MiCuenta'
+import PanelMayorista from './pages/PanelMayorista'
 import PagoResultado from './pages/PagoResultado'
 
 function IrArriba() {
@@ -55,6 +56,7 @@ export default function App() {
           {/* El mayorista es el MISMO catalogo: mismas tarjetas, mismos
               filtros de talle y marca. Lo unico que cambia es el precio, que
               lo resuelve CatalogoContext mirando la URL. */}
+          <Route path="/mayorista/panel" element={<PanelMayorista />} />
           <Route path="/mayorista" element={<Catalogo />} />
           <Route path="/mayorista/catalogo" element={<Catalogo />} />
           <Route path="/mayorista/catalogo/:categoria" element={<Catalogo />} />

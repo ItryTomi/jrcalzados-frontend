@@ -1,0 +1,130 @@
+.pmay {
+  padding: 30px 0 70px;
+}
+
+.pmay-top h1 {
+  margin: 0 0 6px;
+  font-size: 2rem;
+}
+.pmay-top p {
+  margin: 0 0 24px;
+  color: var(--gris-txt);
+  font-size: .88rem;
+  line-height: 1.6;
+  max-width: 60ch;
+}
+.pmay-top strong { color: var(--negro); }
+
+.pmay-tabla-cont {
+  margin-top: 26px;
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radio);
+  background: var(--blanco);
+  overflow: hidden;
+}
+
+.pmay-barra {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--gris-borde);
+}
+.pmay-barra h2 { margin: 0; font-size: 1.1rem; }
+.pmay-barra p { margin: 3px 0 0; font-size: .78rem; color: var(--gris-txt); }
+
+.pmay-acciones { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+.pmay-acciones .btn { padding: 10px 16px; font-size: .72rem; }
+
+.pmay-buscar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radio);
+  padding: 0 10px;
+  color: var(--gris-txt);
+  min-width: 250px;
+}
+.pmay-buscar input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: none;
+  font-family: inherit;
+  font-size: .84rem;
+  padding: 9px 0;
+}
+.pmay-buscar input::-webkit-search-cancel-button { display: none; }
+
+.pmay-ok,
+.pmay-cargando {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 11px 16px;
+  font-size: .82rem;
+}
+.pmay-ok { color: #4e6b00; background: #eaf5d0; }
+.pmay-cargando { color: var(--gris-txt); }
+
+.pmay-tabla { width: 100%; border-collapse: collapse; }
+.pmay-tabla th {
+  text-align: left;
+  padding: 10px 16px;
+  font-size: .64rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--gris-txt);
+  background: var(--gris-bg);
+  border-bottom: 1px solid var(--gris-borde);
+}
+.pmay-tabla td {
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--gris-borde);
+  font-size: .86rem;
+}
+.pmay-tabla tr:last-child td { border-bottom: 0; }
+
+.pmay-marca {
+  display: block;
+  font-size: .62rem;
+  font-weight: 800;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--gris-txt);
+}
+.pmay-publico { color: var(--gris-txt); white-space: nowrap; }
+
+/* Fila de un producto al que todavia no se le puso precio de lista. */
+.pmay-falta { background: #fffbf0; }
+
+.pmay-tabla input {
+  width: 130px;
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radio);
+  padding: 7px 9px;
+  font-family: inherit;
+  font-size: .86rem;
+  text-align: right;
+}
+.pmay-tabla input:focus { outline: 0; border-color: var(--negro); }
+/* Lo que se toco y todavia no se guardo, a la vista. */
+.pmay-tabla input.tocado {
+  border-color: var(--lima-osc);
+  background: #f8fce9;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .pmay-buscar { min-width: 0; width: 100%; }
+  .pmay-acciones { width: 100%; }
+  .pmay-acciones .btn { width: 100%; }
+  .pmay-tabla th:nth-child(2),
+  .pmay-tabla td:nth-child(2) { display: none; }
+}
