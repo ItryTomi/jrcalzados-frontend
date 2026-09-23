@@ -42,6 +42,16 @@ export async function asegurarCatalogo() {
   // cargue: un producto sin precio mayorista no se ofrece en /mayorista.
   await sql`ALTER TABLE productos ADD COLUMN IF NOT EXISTS precio_mayorista numeric(12,2)`
 
+  // En que lista aparece cada producto. Los que ya existian quedan en las dos,
+  // que es como funcionaban hasta ahora. Un producto cargado desde el panel
+  // mayorista nace solo en el mayorista.
+  await sql`ALTER TABLE productos ADD COLUMN IF NOT EXISTS en_tienda boolean NOT NULL DEFAULT true`
+  await sql`ALTER TABLE productos ADD COLUMN IF NOT EXISTS en_mayorista boolean NOT NULL DEFAULT true`
+
+  // Un producto que es solo mayorista no tiene precio de vidriera. No falla
+  // si la columna ya aceptaba NULL.
+  await sql`ALTER TABLE productos ALTER COLUMN precio DROP NOT NULL`
+
   const hay = await sql`SELECT count(*)::int AS n FROM productos`
   if (hay[0].n === 0) await sembrar()
 
@@ -80,7 +90,7 @@ const aProducto = (f, conMayorista = false) => ({
   tipo: f.tipo,
   uso: f.uso,
   descripcion: f.descripcion || '',
-  precio: Number(f.precio),
+  precio: f.precio === null ? null : Number(f.precio),
   precioAnterior: f.precio_anterior === null ? null : Number(f.precio_anterior),
   ...(conMayorista
     ? {
@@ -95,22 +105,45 @@ const aProducto = (f, conMayorista = false) => ({
   consultarTalle: f.consultar_talle,
   destacado: f.destacado,
   nuevo: f.nuevo,
-  activo: f.activo
+  activo: f.activo,
+  enTienda: f.en_tienda !== false,
+  enMayorista: f.en_mayorista !== false
 })
 
-export async function leerCatalogo({ incluirInactivos = false, conMayorista = false } = {}) {
+// `canal` decide de que lista se leen los productos:
+//   'tienda'    -> solo los que se venden al publico (por defecto)
+//   'mayorista' -> solo los que se ofrecen a comercios
+//   'todos'     -> todos, para el panel
+//
+// El defecto es 'tienda' A PROPOSITO: quien no diga nada recibe la lista del
+// publico. Asi crear-preferencia y el sitemap nunca ven un producto solo
+// mayorista, y ese producto no puede terminar cobrado por Mercado Pago.
+export async function leerCatalogo({
+  incluirInactivos = false,
+  conMayorista = false,
+  canal = 'tienda'
+} = {}) {
   await asegurarCatalogo()
   const sql = db()
   const filas = incluirInactivos
     ? await sql`SELECT * FROM productos ORDER BY orden, nombre`
     : await sql`SELECT * FROM productos WHERE activo ORDER BY orden, nombre`
-  return filas.map((f) => aProducto(f, conMayorista))
+  const delCanal =
+    canal === 'todos'
+      ? filas
+      : canal === 'mayorista'
+        ? filas.filter((f) => f.en_mayorista !== false)
+        : filas.filter((f) => f.en_tienda !== false && f.precio !== null)
+  return delCanal.map((f) => aProducto(f, conMayorista))
 }
 
 export async function buscarProductoBase(id) {
   await asegurarCatalogo()
   const sql = db()
-  const filas = await sql`SELECT * FROM productos WHERE id = ${id} AND activo`
+  const filas = await sql`
+    SELECT * FROM productos
+    WHERE id = ${id} AND activo AND en_tienda AND precio IS NOT NULL
+  `
   return filas[0] ? aProducto(filas[0]) : null
 }
 
@@ -126,7 +159,10 @@ const redondearA = (n, modo) => {
 export async function simularAumento({ porcentaje, marca, tipo, redondeo }) {
   await asegurarCatalogo()
   const sql = db()
-  let filas = await sql`SELECT id, marca, tipo, nombre, precio FROM productos ORDER BY marca, nombre`
+  let filas = await sql`
+    SELECT id, marca, tipo, nombre, precio FROM productos
+    WHERE precio IS NOT NULL ORDER BY marca, nombre
+  `
   if (marca) filas = filas.filter((f) => f.marca === marca)
   if (tipo) filas = filas.filter((f) => f.tipo === tipo)
 
@@ -155,7 +191,9 @@ export async function simularMayorista({ porcentajes, marca, tipo, redondeo }) {
   const sql = db()
   let filas = await sql`
     SELECT id, marca, tipo, nombre, precio, precio_mayorista
-    FROM productos WHERE activo ORDER BY marca, nombre
+    FROM productos
+    WHERE activo AND en_mayorista AND precio IS NOT NULL
+    ORDER BY marca, nombre
   `
   if (marca) filas = filas.filter((f) => f.marca === marca)
   if (tipo) filas = filas.filter((f) => f.tipo === tipo)
@@ -253,12 +291,14 @@ export async function guardarProducto(p) {
   const filas = await sql`
     INSERT INTO productos (id, marca, codigo, nombre, genero, tipo, uso, descripcion,
                            precio, precio_anterior, precio_mayorista, talles, colores,
-                           consultar_talle, destacado, nuevo, activo)
+                           consultar_talle, destacado, nuevo, activo, en_tienda,
+                           en_mayorista)
     VALUES (${p.id}, ${p.marca}, ${p.codigo}, ${p.nombre}, ${p.genero}, ${p.tipo},
             ${p.uso}, ${p.descripcion || null}, ${p.precio}, ${p.precioAnterior},
             ${p.precioMayorista ?? null},
             ${JSON.stringify(p.talles)}, ${JSON.stringify(p.colores)},
-            ${p.consultarTalle}, ${p.destacado}, ${p.nuevo}, ${p.activo})
+            ${p.consultarTalle}, ${p.destacado}, ${p.nuevo}, ${p.activo},
+            ${p.enTienda !== false}, ${p.enMayorista !== false})
     ON CONFLICT (id) DO UPDATE SET
       marca           = EXCLUDED.marca,
       codigo          = EXCLUDED.codigo,
@@ -276,6 +316,8 @@ export async function guardarProducto(p) {
       destacado       = EXCLUDED.destacado,
       nuevo           = EXCLUDED.nuevo,
       activo          = EXCLUDED.activo,
+      en_tienda       = EXCLUDED.en_tienda,
+      en_mayorista    = EXCLUDED.en_mayorista,
       actualizado_en  = now()
     RETURNING *
   `

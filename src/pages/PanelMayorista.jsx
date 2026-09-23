@@ -1,14 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Check, KeyRound, Loader2, Search } from 'lucide-react'
+import { Check, DollarSign, KeyRound, Loader2, Search, Shirt } from 'lucide-react'
 import { precioARS } from '../data/productos'
 import PanelPreciosMayorista from './PanelPreciosMayorista'
+import PanelProductos from './PanelProductos'
 import './PanelMayorista.css'
 
-// Panel de precios mayoristas, en /mayorista/panel.
+// Panel mayorista, en /mayorista/panel.
 //
-// Separado del panel de la tienda a proposito: los precios mayoristas son lo
-// unico que se administra aca. La pagina publica /mayorista NO los muestra, se
-// cotizan por WhatsApp; este panel es el unico lugar donde se ven y se editan.
+// Productos: el mismo formulario del panel de la tienda (PanelProductos con
+// canal="mayorista"). Lo que se crea aca nace solo en la lista mayorista; hay
+// productos que el local vende solo al por mayor y no tienen por que pasar por
+// la tienda.
+//
+// Precios: los precios mayoristas, uno por uno o con el calculo masivo. La
+// pagina publica /mayorista NO los muestra: se cotizan por WhatsApp, y este
+// panel es el unico lugar donde se ven.
 //
 // Usa la misma clave del local y la misma sesion que el panel de pedidos.
 
@@ -23,6 +29,7 @@ export default function PanelMayorista() {
     }
   })
   const [clave, setClave] = useState('')
+  const [vista, setVista] = useState('productos')
 
   const [productos, setProductos] = useState(null)
   const [error, setError] = useState(null)
@@ -46,15 +53,19 @@ export default function PanelMayorista() {
       }
       const d = await r.json()
       if (!r.ok) throw new Error(d.error || 'No se pudo cargar')
-      setProductos((d.productos || []).filter((p) => p.activo !== false))
+      setProductos(
+        (d.productos || []).filter((p) => p.activo !== false && p.enMayorista !== false)
+      )
     } catch (e) {
       setError(e.message)
     }
   }, [token])
 
+  // Se vuelve a pedir al entrar a Precios: si recien se creo un producto en la
+  // otra pestana, tiene que aparecer en la tabla.
   useEffect(() => {
-    traer()
-  }, [traer])
+    if (vista === 'precios') traer()
+  }, [traer, vista])
 
   const entrar = (e) => {
     e.preventDefault()
@@ -140,7 +151,7 @@ export default function PanelMayorista() {
       <div className="panel-login">
         <form onSubmit={entrar}>
           <KeyRound size={34} strokeWidth={1.6} />
-          <h1>Precios mayoristas</h1>
+          <h1>Panel mayorista</h1>
           <p>Ingresá la clave del local.</p>
           <input
             type="password"
@@ -163,16 +174,34 @@ export default function PanelMayorista() {
       <div className="contenedor">
         <header className="pmay-top">
           <div>
-            <h1>Precios mayoristas</h1>
+            <h1>Panel mayorista</h1>
             <p>
-              Estos precios <strong>no se publican</strong>: la lista mayorista no los
-              muestra. Son para vos, para cotizar por WhatsApp.
+              Lo que cargues acá aparece en la lista para comercios. Los precios{' '}
+              <strong>no se publican</strong>: son para vos, para cotizar por WhatsApp.
             </p>
+          </div>
+          <div className="panel-tabs pmay-tabs">
+            <button
+              className={vista === 'productos' ? 'activo' : ''}
+              onClick={() => setVista('productos')}
+            >
+              <Shirt size={16} /> Productos
+            </button>
+            <button
+              className={vista === 'precios' ? 'activo' : ''}
+              onClick={() => setVista('precios')}
+            >
+              <DollarSign size={16} /> Precios
+            </button>
           </div>
         </header>
 
         {error && <p className="panel-error">{error}</p>}
 
+        {vista === 'productos' && <PanelProductos token={token} canal="mayorista" />}
+
+        {vista === 'precios' && (
+          <>
         <PanelPreciosMayorista token={token} />
 
         <section className="pmay-tabla-cont">
@@ -250,7 +279,9 @@ export default function PanelMayorista() {
                         <span className="pmay-marca">{p.marca}</span>
                         {p.nombre}
                       </td>
-                      <td className="pmay-publico">{precioARS(p.precio)}</td>
+                      <td className="pmay-publico">
+                        {p.precio == null ? 'solo mayorista' : precioARS(p.precio)}
+                      </td>
                       <td>
                         <input
                           type="number"
@@ -268,6 +299,8 @@ export default function PanelMayorista() {
             </table>
           )}
         </section>
+          </>
+        )}
       </div>
     </div>
   )

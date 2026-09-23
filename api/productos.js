@@ -65,9 +65,29 @@ export default async function handler(req, res) {
     if (!nombre) return res.status(400).json({ error: 'Falta el nombre' })
     if (!marca) return res.status(400).json({ error: 'Falta la marca' })
 
-    const precio = Number(producto.precio)
-    if (!Number.isFinite(precio) || precio <= 0) {
-      return res.status(400).json({ error: 'El precio tiene que ser mayor a cero' })
+    // Donde se muestra. Si no viene, queda en las dos listas, que es como
+    // funcionaba todo antes de que existiera el panel mayorista.
+    const enTienda = producto.enTienda !== false
+    const enMayorista = producto.enMayorista !== false
+    if (!enTienda && !enMayorista) {
+      return res.status(400).json({
+        error: 'Elegí dónde se muestra: en la tienda, en el mayorista o en los dos'
+      })
+    }
+
+    // El precio de vidriera solo es obligatorio si el producto se vende en la
+    // tienda. Uno solo mayorista no lo necesita: no se cobra por Mercado Pago.
+    let precio = null
+    const hayPrecio = producto.precio !== '' && producto.precio != null && Number(producto.precio) !== 0
+    if (enTienda || hayPrecio) {
+      precio = Number(producto.precio)
+      if (!Number.isFinite(precio) || precio <= 0) {
+        return res.status(400).json({
+          error: enTienda
+            ? 'Para mostrarlo en la tienda necesita un precio mayor a cero'
+            : 'El precio de la tienda tiene que ser mayor a cero'
+        })
+      }
     }
 
     // Vacio es valido: significa "este producto todavia no tiene precio de
@@ -157,7 +177,7 @@ export default async function handler(req, res) {
       precio,
       precioMayorista,
       precioAnterior:
-        producto.precioAnterior === '' || producto.precioAnterior == null
+        precio === null || producto.precioAnterior === '' || producto.precioAnterior == null
           ? null
           : Number(producto.precioAnterior) || null,
       talles,
@@ -165,7 +185,9 @@ export default async function handler(req, res) {
       consultarTalle,
       destacado: Boolean(producto.destacado),
       nuevo: Boolean(producto.nuevo),
-      activo: producto.activo !== false
+      activo: producto.activo !== false,
+      enTienda,
+      enMayorista
     })
 
     return res.status(200).json({ producto: guardado })

@@ -2,12 +2,22 @@
   padding: 30px 0 70px;
 }
 
+.pmay-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+.pmay-tabs { margin-bottom: 4px; }
+
 .pmay-top h1 {
   margin: 0 0 6px;
   font-size: 2rem;
 }
 .pmay-top p {
-  margin: 0 0 24px;
+  margin: 0;
   color: var(--gris-txt);
   font-size: .88rem;
   line-height: 1.6;

@@ -114,7 +114,7 @@ export default async function handler(req, res) {
   // viaja. El local los administra desde /mayorista/panel, que pide clave.
   if (mayorista) {
     try {
-      const todos = await leerCatalogo()
+      const todos = await leerCatalogo({ canal: 'mayorista' })
       const productos = todos.map(({ precio, precioAnterior, colores, ...resto }) => ({
         ...resto,
         precio: null,
@@ -134,7 +134,9 @@ export default async function handler(req, res) {
     // el local lo carga. Ese modo ya exige clave, mas arriba.
     const productos = await leerCatalogo({
       incluirInactivos: Boolean(todo),
-      conMayorista: Boolean(todo)
+      conMayorista: Boolean(todo),
+      // El panel ve los de las dos listas; el publico, solo los de la tienda.
+      canal: todo ? 'todos' : 'tienda'
     })
     if (!todo) {
       res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300')

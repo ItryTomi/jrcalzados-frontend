@@ -35,7 +35,9 @@ const NUEVO = {
   colores: [COLOR_VACIO],
   destacado: false,
   nuevo: true,
-  activo: true
+  activo: true,
+  enTienda: true,
+  enMayorista: true
 }
 
 // El precio de vidriera sale del mayorista sumandole el IVA y el margen. Se
@@ -64,7 +66,11 @@ const rango = (a, b) => {
   return out
 }
 
-export default function PanelProductos({ token }) {
+// `canal` dice desde que panel se usa: 'tienda' (/panel) o 'mayorista'
+// (/mayorista/panel). Cambia que productos se listan, donde nace uno nuevo y
+// que precio manda. El formulario es el mismo para no mantener dos.
+export default function PanelProductos({ token, canal = 'tienda' }) {
+  const desdeMayorista = canal === 'mayorista'
   const { productos: publicos, marcas, recargar } = useCatalogo()
   const [busca, setBusca] = useState('')
   const [tipoF, setTipoF] = useState('')
@@ -122,7 +128,14 @@ export default function PanelProductos({ token }) {
       if (!p) {
         setElegido(null)
         setPrecioAuto(true)
-        setForm({ ...NUEVO, colores: [{ ...COLOR_VACIO }] })
+        // Cargado desde el panel mayorista, nace solo en el mayorista. Desde la
+        // tienda nace en las dos listas, como siempre.
+        setForm({
+          ...NUEVO,
+          enTienda: !desdeMayorista,
+          enMayorista: true,
+          colores: [{ ...COLOR_VACIO }]
+        })
         return
       }
       setElegido(p.id)
@@ -144,7 +157,7 @@ export default function PanelProductos({ token }) {
         }))
       })
     },
-    []
+    [desdeMayorista]
   )
 
   useEffect(() => {
@@ -163,7 +176,9 @@ export default function PanelProductos({ token }) {
     setForm((f) => ({
       ...f,
       precioMayorista: valor,
-      precio: precioAuto && valor !== '' ? aMinorista(valor) : f.precio
+      // Solo tiene sentido calcular la vidriera si el producto va a la tienda.
+      precio:
+        precioAuto && f.enTienda !== false && valor !== '' ? aMinorista(valor) : f.precio
     }))
   }
 
@@ -242,7 +257,7 @@ export default function PanelProductos({ token }) {
     try {
       const cuerpo = {
         ...form,
-        precio: Number(form.precio),
+        precio: String(form.precio ?? '').trim() === '' ? null : Number(form.precio),
         precioAnterior: form.precioAnterior === '' ? null : Number(form.precioAnterior),
         precioMayorista: form.precioMayorista === '' ? null : Number(form.precioMayorista),
         talles: form.consultarTalle ? [] : rango(form.desde, form.hasta)
@@ -291,6 +306,9 @@ export default function PanelProductos({ token }) {
   const lista = useMemo(() => {
     const q = busca.trim().toLowerCase()
     return [...productos]
+      // Cada panel ve su lista. Un producto solo mayorista no tiene nada que
+      // hacer en el panel de la tienda, y al reves.
+      .filter((p) => (desdeMayorista ? p.enMayorista !== false : p.enTienda !== false))
       .filter((p) =>
         estadoF === 'todos' ? true : estadoF === 'inactivos' ? !p.activo : p.activo !== false
       )
@@ -301,7 +319,7 @@ export default function PanelProductos({ token }) {
           `${p.marca} ${p.nombre} ${p.codigo || ''} ${p.id}`.toLowerCase().includes(q)
       )
       .sort((a, b) => a.marca.localeCompare(b.marca) || a.nombre.localeCompare(b.nombre))
-  }, [productos, busca, tipoF, estadoF])
+  }, [productos, busca, tipoF, estadoF, desdeMayorista])
 
   if (!form) return null
 
@@ -396,9 +414,22 @@ export default function PanelProductos({ token }) {
             </span>
             <span className="prods-nombre">{p.nombre}</span>
             <em>
-              {precioARS(p.precio)}
-              {p.precioMayorista != null && (
-                <i className="prods-may">May {precioARS(p.precioMayorista)}</i>
+              {desdeMayorista ? (
+                <>
+                  {p.precioMayorista != null ? (
+                    precioARS(p.precioMayorista)
+                  ) : (
+                    <span className="prods-sinprecio">sin precio</span>
+                  )}
+                  {p.enTienda === false && <i className="prods-canal">solo mayorista</i>}
+                </>
+              ) : (
+                <>
+                  {precioARS(p.precio)}
+                  {p.precioMayorista != null && (
+                    <i className="prods-may">May {precioARS(p.precioMayorista)}</i>
+                  )}
+                </>
               )}
             </em>
           </button>
@@ -479,35 +510,47 @@ export default function PanelProductos({ token }) {
               onChange={(e) => setMayorista(e.target.value)}
             />
             <small>
-              Al cargarlo se calcula el precio de vidriera. Si lo dejas vacio, el producto
-              no aparece en el catalogo mayorista.
+              No se publica: la lista mayorista no muestra precios, es para cotizar.
+              {form.enTienda !== false && ' Al cargarlo se calcula el precio de vidriera.'}
             </small>
           </label>
 
-          <label className="campo">
-            Precio <span className="opcional">(el que ve el publico)</span>
-            <input
-              type="number"
-              min="0"
-              value={form.precio}
-              onChange={(e) => setMinorista(e.target.value)}
-            />
-            <small>
-              {precioAuto
-                ? `Calculado: mayorista + ${IVA}% de IVA + ${MARGEN}% de margen. Podes pisarlo a mano.`
-                : 'Puesto a mano. Para volver al calculo automatico, salí del producto y volvé a entrar.'}
-            </small>
-          </label>
+          {/* Un producto solo mayorista no tiene precio de vidriera: no se
+              vende al publico ni pasa por Mercado Pago. */}
+          {form.enTienda !== false ? (
+            <>
+              <label className="campo">
+                Precio <span className="opcional">(el que ve el publico)</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.precio ?? ''}
+                  onChange={(e) => setMinorista(e.target.value)}
+                />
+                <small>
+                  {precioAuto
+                    ? `Calculado: mayorista + ${IVA}% de IVA + ${MARGEN}% de margen. Podes pisarlo a mano.`
+                    : 'Puesto a mano. Para volver al calculo automatico, salí del producto y volvé a entrar.'}
+                </small>
+              </label>
 
-          <label className="campo">
-            Precio anterior <span className="opcional">(para mostrar % OFF)</span>
-            <input
-              type="number"
-              min="0"
-              value={form.precioAnterior}
-              onChange={(e) => set('precioAnterior', e.target.value)}
-            />
-          </label>
+              <label className="campo">
+                Precio anterior <span className="opcional">(para mostrar % OFF)</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.precioAnterior}
+                  onChange={(e) => set('precioAnterior', e.target.value)}
+                />
+              </label>
+            </>
+          ) : (
+            <p className="campo prods-solo-may">
+              Este producto es <strong>solo mayorista</strong>: no tiene precio de vidriera y
+              no aparece en la tienda. Si lo querés vender al público, marcá "En la tienda"
+              más abajo.
+            </p>
+          )}
 
           <label className="campo">
             Para quién
@@ -703,6 +746,29 @@ export default function PanelProductos({ token }) {
         </fieldset>
 
         <fieldset className="prods-bloque">
+          <legend>En qué lista se muestra</legend>
+          <label className="prods-check">
+            <input
+              type="checkbox"
+              checked={form.enTienda !== false}
+              onChange={(e) => set('enTienda', e.target.checked)}
+            />
+            En la tienda — se vende al público y se cobra online
+          </label>
+          <label className="prods-check">
+            <input
+              type="checkbox"
+              checked={form.enMayorista !== false}
+              onChange={(e) => set('enMayorista', e.target.checked)}
+            />
+            En el mayorista — aparece en la lista para comercios
+          </label>
+          {form.enTienda === false && form.enMayorista === false && (
+            <p className="panel-error">Tiene que estar en al menos una de las dos.</p>
+          )}
+        </fieldset>
+
+        <fieldset className="prods-bloque">
           <legend>Dónde aparece</legend>
           <label className="prods-check">
             <input
@@ -726,13 +792,15 @@ export default function PanelProductos({ token }) {
               checked={form.activo}
               onChange={(e) => set('activo', e.target.checked)}
             />
-            Visible en la tienda
+            Activo — si lo apagás, no aparece en ninguna de las dos listas
           </label>
         </fieldset>
 
-        <p className="prods-nota">
-          <X size={13} /> El stock se carga aparte, en la pestaña Stock, después de guardar.
-        </p>
+        {!desdeMayorista && (
+          <p className="prods-nota">
+            <X size={13} /> El stock se carga aparte, en la pestaña Stock, después de guardar.
+          </p>
+        )}
       </form>
     </div>
   )
